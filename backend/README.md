@@ -199,7 +199,7 @@ docker compose down -v
 
 ### Compte admin par défaut
 
-Après le premier démarrage : `admin@example.com` / `admin123`
+Après le premier démarrage : `admin@stalla.com` / `admin123`
 
 ---
 
