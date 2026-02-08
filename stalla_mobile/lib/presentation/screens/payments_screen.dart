@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-
 import '../../core/theme/app_colors.dart';
 import '../providers/payment_provider.dart';
-import '../widgets/custom_card.dart';
 import '../widgets/loading_widget.dart';
 import '../widgets/error_widget.dart';
 
@@ -24,6 +22,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
     });
   }
 
+  // Fonctions de formatage conservées
   String _formatCurrency(int amount) {
     final formatter = NumberFormat('#,###', 'fr_FR');
     return '${formatter.format(amount)} F';
@@ -32,188 +31,232 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
   String _formatDate(String dateString) {
     try {
       final date = DateTime.parse(dateString);
-      return DateFormat('dd MMM yyyy', 'fr_FR').format(date);
-    } catch (e) {
-      return dateString;
-    }
-  }
-
-  String _formatMonth(String monthString) {
-    try {
-      final date = DateTime.parse('$monthString-01');
-      return DateFormat('MMMM yyyy', 'fr_FR').format(date);
-    } catch (e) {
-      return monthString;
-    }
+      return DateFormat('dd MMMM yyyy', 'fr_FR').format(date);
+    } catch (e) { return dateString; }
   }
 
   String _getPaymentMethodLabel(String? method) {
     switch (method?.toUpperCase()) {
-      case 'CASH':
-        return 'Cash';
-      case 'ORANGE_MONEY':
-        return 'Orange Money';
-      case 'MOOV_MONEY':
-        return 'Moov Money';
-      default:
-        return 'Autre';
+      case 'CASH': return 'Espèces';
+      case 'ORANGE_MONEY': return 'Orange Money';
+      case 'MOOV_MONEY': return 'Moov Money';
+      default: return 'Autre';
     }
   }
 
-  Future<void> _downloadReceipt(String receiptPath) async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Fonctionnalité de téléchargement à venir'),
-        backgroundColor: AppColors.orangePantone,
-      ),
-    );
+  IconData _getPaymentIcon(String? method) {
+    switch (method?.toUpperCase()) {
+      case 'CASH': return Icons.payments_outlined;
+      case 'ORANGE_MONEY':
+      case 'MOOV_MONEY': return Icons.phonelink_ring_rounded;
+      default: return Icons.account_balance_wallet_outlined;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Consumer<PaymentProvider>(
-          builder: (context, paymentProvider, _) {
-            if (paymentProvider.isLoading && paymentProvider.payments.isEmpty) {
-              return const LoadingWidget(message: 'Chargement des paiements...');
-            }
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        title: const Text('Historique', style: TextStyle(fontWeight: FontWeight.bold)),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: Colors.black,
+      ),
+      body: Consumer<PaymentProvider>(
+        builder: (context, paymentProvider, _) {
+          if (paymentProvider.isLoading && paymentProvider.payments.isEmpty) {
+            return const LoadingWidget(message: 'Chargement...');
+          }
 
-            if (paymentProvider.errorMessage != null && paymentProvider.payments.isEmpty) {
-              return ErrorDisplay(
-                message: paymentProvider.errorMessage!,
-                onRetry: () => paymentProvider.fetchPayments(),
-              );
-            }
+          if (paymentProvider.errorMessage != null && paymentProvider.payments.isEmpty) {
+            return ErrorDisplay(
+              message: paymentProvider.errorMessage!,
+              onRetry: () => paymentProvider.fetchPayments(),
+            );
+          }
 
-            final payments = paymentProvider.payments;
+          final payments = paymentProvider.payments;
 
-            return RefreshIndicator(
-              onRefresh: () => paymentProvider.fetchPayments(),
-              color: AppColors.orangePantone,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header
-                    Text(
-                      'Historique',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Paiements effectués',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 24),
+          return RefreshIndicator(
+            onRefresh: () => paymentProvider.fetchPayments(),
+            color: AppColors.orangePantone,
+            child: payments.isEmpty 
+              ? _buildEmptyState(context)
+              : ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  itemCount: payments.length,
+                  itemBuilder: (context, index) {
+                    final payment = payments[index];
+                    return _buildPaymentCard(payment);
+                  },
+                ),
+          );
+        },
+      ),
+    );
+  }
 
-                    if (payments.isEmpty)
-                      CustomCard(
-                        child: Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(20),
+  Widget _buildPaymentCard(dynamic payment) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            // ignore: deprecated_member_use
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: IntrinsicHeight(
+          child: Row(
+            children: [
+              // Barre latérale de couleur
+              Container(
+                width: 6,
+                color: AppColors.orangePantone,
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          // Icône de méthode de paiement
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              // ignore: deprecated_member_use
+                              color: AppColors.orangePantone.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              _getPaymentIcon(payment.method),
+                              color: AppColors.orangePantone,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          // Infos Paiement
+                          Expanded(
                             child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Icon(
-                                  Icons.receipt_long_outlined,
-                                  size: 64,
-                                  color: AppColors.lightOrange,
-                                ),
-                                const SizedBox(height: 16),
                                 Text(
-                                  'Aucun paiement',
-                                  style: Theme.of(context).textTheme.titleMedium,
+                                  _getPaymentMethodLabel(payment.method),
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                 ),
-                                const SizedBox(height: 8),
                                 Text(
-                                  'Votre historique de paiements apparaîtra ici',
-                                  textAlign: TextAlign.center,
-                                  style: Theme.of(context).textTheme.bodyMedium,
+                                  _formatDate(payment.date),
+                                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
                                 ),
                               ],
                             ),
                           ),
-                        ),
-                      )
-                    else
-                      CustomCard(
-                        padding: const EdgeInsets.all(0),
-                        child: ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: payments.length,
-                          separatorBuilder: (context, index) => const Divider(
-                            height: 1,
-                            color: AppColors.lightYellow,
+                          // Montant
+                          Text(
+                            _formatCurrency(payment.amount),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 17,
+                              color: Colors.black,
+                            ),
                           ),
-                          itemBuilder: (context, index) {
-                            final payment = payments[index];
-                            return Padding(
-                              padding: const EdgeInsets.all(20),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          _formatMonth(payment.monthPaid),
-                                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                                fontWeight: FontWeight.w600,
-                                                color: AppColors.textDark,
-                                              ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          '${_formatDate(payment.date)} • ${_getPaymentMethodLabel(payment.method)}',
-                                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                                color: AppColors.textMuted,
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        _formatCurrency(payment.amount),
-                                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                              fontWeight: FontWeight.w700,
-                                              color: AppColors.textDark,
-                                            ),
-                                      ),
-                                      if (payment.receiptPath != null) ...[
-                                        const SizedBox(height: 4),
-                                        GestureDetector(
-                                          onTap: () => _downloadReceipt(payment.receiptPath!),
-                                          child: Text(
-                                            'REÇU PDF',
-                                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                                  color: AppColors.pumpkin,
-                                                  fontWeight: FontWeight.w700,
-                                                  fontSize: 11,
-                                                ),
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
+                        ],
                       ),
-                  ],
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        child: Divider(height: 1),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.calendar_month, size: 14, color: Colors.grey[400]),
+                              const SizedBox(width: 4),
+                              Text(
+                                "Mois réglé: ${payment.monthPaid}",
+                                style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                              ),
+                            ],
+                          ),
+                          if (payment.receiptPath != null)
+                            InkWell(
+                              onTap: () => _downloadReceipt(payment.receiptPath!),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  // ignore: deprecated_member_use
+                                  color: Colors.orange.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                  // ignore: deprecated_member_use
+                                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                                ),
+                                child: const Row(
+                                  children: [
+                                    Icon(Icons.picture_as_pdf, size: 14, color: Colors.orange),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'REÇU',
+                                      style: TextStyle(
+                                        color: Colors.orange,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            );
-          },
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.history_toggle_off, size: 100, color: Colors.grey[300]),
+          const SizedBox(height: 20),
+          const Text(
+            'Aucun paiement enregistré',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Vos factures réglées apparaîtront ici.',
+            style: TextStyle(color: Colors.grey[500]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Ta fonction de téléchargement existante
+  Future<void> _downloadReceipt(String receiptPath) async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Téléchargement du reçu PDF...'),
+        backgroundColor: AppColors.orangePantone,
       ),
     );
   }

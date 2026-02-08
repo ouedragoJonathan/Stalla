@@ -34,7 +34,7 @@ export function initStand(sequelize) {
       currentVendorId: {
         type: DataTypes.INTEGER,
         allowNull: true,
-        references: { model: "users", key: "id" },
+        references: { model: "Users", key: "id" },
       },
     },
     { tableName: "stands", timestamps: true }

@@ -14,92 +14,105 @@ class MainLayout extends StatelessWidget {
   });
 
   int get _currentIndex {
-    switch (currentPath) {
-      case '/home':
-        return 0;
-      case '/stand':
-        return 1;
-      case '/debts':
-        return 2;
-      case '/payments':
-        return 3;
-      case '/profile':
-        return 4;
-      default:
-        return 0;
-    }
+    if (currentPath.startsWith('/home')) return 0;
+    if (currentPath.startsWith('/stand')) return 1;
+    if (currentPath.startsWith('/debts')) return 2;
+    if (currentPath.startsWith('/payments')) return 3;
+    if (currentPath.startsWith('/profile')) return 4;
+    return 0;
   }
 
   void _onItemTapped(BuildContext context, int index) {
-    switch (index) {
-      case 0:
-        context.go(AppConstants.homeRoute);
-        break;
-      case 1:
-        context.go(AppConstants.standRoute);
-        break;
-      case 2:
-        context.go(AppConstants.debtsRoute);
-        break;
-      case 3:
-        context.go(AppConstants.paymentsRoute);
-        break;
-      case 4:
-        context.go(AppConstants.profileRoute);
-        break;
+    final routes = [
+      AppConstants.homeRoute,
+      AppConstants.standRoute,
+      AppConstants.debtsRoute,
+      AppConstants.paymentsRoute,
+      AppConstants.profileRoute,
+    ];
+    if (_currentIndex != index) {
+      context.go(routes[index]);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true, // Permet au contenu de passer sous la barre flottante
       body: child,
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          border: Border(
-            top: BorderSide(
-              color: AppColors.lightOrange,
-              width: 1,
+      bottomNavigationBar: _buildModernNavBar(context),
+    );
+  }
+
+  Widget _buildModernNavBar(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 20), // Marges pour l'effet flottant
+      height: 70,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            // ignore: deprecated_member_use
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildNavItem(0, Icons.home_rounded, 'Accueil'),
+          _buildNavItem(1, Icons.store_rounded, 'Stand'),
+          _buildNavItem(2, Icons.warning_amber_rounded, 'Dettes'),
+          _buildNavItem(3, Icons.receipt_long_rounded, 'Ventes'),
+          _buildNavItem(4, Icons.person_rounded, 'Profil'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavItem(int index, IconData icon, String label) {
+    final isSelected = _currentIndex == index;
+    // ignore: deprecated_member_use
+    final color = isSelected ? AppColors.orangePantone : Colors.grey.withOpacity(0.6);
+
+    return GestureDetector(
+      onTap: () => _onItemTapped(null!, index), // Note: Passer le context via un callback si nécessaire ou utiliser Builder
+      child: Builder(
+        builder: (context) => InkWell(
+          onTap: () => _onItemTapped(context, index),
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              // ignore: deprecated_member_use
+              color: isSelected ? AppColors.orangePantone.withOpacity(0.1) : Colors.transparent,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  color: color,
+                  size: 26,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 10,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) => _onItemTapped(context, index),
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: AppColors.white,
-          selectedItemColor: AppColors.orangePantone,
-          unselectedItemColor: AppColors.sandyBrown,
-          selectedFontSize: 10,
-          unselectedFontSize: 10,
-          elevation: 0,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
-              label: 'Accueil',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.store_outlined),
-              activeIcon: Icon(Icons.store),
-              label: 'Stand',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.warning_amber_outlined),
-              activeIcon: Icon(Icons.warning_amber),
-              label: 'Dettes',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.receipt_long_outlined),
-              activeIcon: Icon(Icons.receipt_long),
-              label: 'Historique',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: 'Profil',
-            ),
-          ],
         ),
       ),
     );

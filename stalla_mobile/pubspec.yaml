@@ -43,6 +43,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^3.0.0
   flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.7
 
 flutter:
   uses-material-design: true
@@ -58,3 +59,21 @@ flutter_launcher_icons:
   image_path: "assets/logo/app_icon.png"
   adaptive_icon_background: "#FFFBDC"
   adaptive_icon_foreground: "assets/logo/app_icon.png"
+
+# Configuration du splash screen
+flutter_native_splash:
+  color: "#FFD3A5"  
+  image: assets/logo/app_icon.png  # Votre logo
+  
+  # Configuration Android
+  android: true
+  android_12:
+    image: assets/logo/app_icon.png
+    color: "#FFD3A5"
+    icon_background_color: "#FFFFFF"  # Couleur derrière l'icône (Android 12+)
+  
+  # Configuration iOS
+  ios: true
+  
+  # Configuration Web (optionnel)
+  web: false

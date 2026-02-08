@@ -1,6 +1,6 @@
 class AppConstants {
   static const String appName = 'STALLA';
-  static const String apiBaseUrl = 'http://localhost:4000/api/v1';
+  static const String apiBaseUrl = 'http://192.168.100.84:4000/api/v1';
   
   // Storage Keys
   static const String tokenKey = 'auth_token';

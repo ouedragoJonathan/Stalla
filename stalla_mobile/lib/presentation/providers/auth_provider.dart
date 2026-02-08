@@ -38,9 +38,10 @@ class AuthProvider extends ChangeNotifier {
     );
 
     if (response.success && response.data != null) {
+      // Extraction sécurisée de l'utilisateur
       _user = User.fromJson(response.data!['user']);
       _status = AuthStatus.authenticated;
-      notifyListeners();
+      notifyListeners(); // Informe l'app que le statut a changé
       return true;
     } else {
       _errorMessage = response.message ?? 'Erreur de connexion';
