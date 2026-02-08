@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  flutter_app:
+    build: .
+    container_name: stalla_mobile
+    volumes:
+      - .:/app
+      - flutter_pub_cache:/root/.pub-cache
+    ports:
+      - "8080:8080"
+    environment:
+      - API_BASE_URL=http://localhost:4000/api/v1
+    command: flutter run -d web-server --web-port 8080 --web-hostname 0.0.0.0
+
+volumes:
+  flutter_pub_cache:

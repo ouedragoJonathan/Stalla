@@ -1,0 +1,79 @@
+name: stalla_mobile
+description: Application mobile STALLA pour la gestion des stands de marché
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # UI & Design
+  cupertino_icons: ^1.0.2
+  google_fonts: ^6.1.0
+  flutter_svg: ^2.0.9
+  
+  # State Management
+  provider: ^6.1.1
+  
+  # Navigation
+  go_router: ^13.0.0
+  
+  # Network & API
+  dio: ^5.4.0
+  pretty_dio_logger: ^1.3.1
+  
+  # Storage
+  shared_preferences: ^2.2.2
+  flutter_secure_storage: ^9.0.0
+  
+  # Utils
+  intl: ^0.19.0
+  equatable: ^2.0.5
+  
+  # PDF
+  pdf: ^3.10.7
+  printing: ^5.12.0
+  path_provider: ^2.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.7
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/logo/
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/logo/app_icon.png"
+  adaptive_icon_background: "#FFFBDC"
+  adaptive_icon_foreground: "assets/logo/app_icon.png"
+
+# Configuration du splash screen
+flutter_native_splash:
+  color: "#FFD3A5"  
+  image: assets/logo/app_icon.png  # Votre logo
+  
+  # Configuration Android
+  android: true
+  android_12:
+    image: assets/logo/app_icon.png
+    color: "#FFD3A5"
+    icon_background_color: "#FFFFFF"  # Couleur derrière l'icône (Android 12+)
+  
+  # Configuration iOS
+  ios: true
+  
+  # Configuration Web (optionnel)
+  web: false

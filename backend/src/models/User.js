@@ -1,44 +1,46 @@
-import { DataTypes } from "sequelize";
-import bcrypt from "bcryptjs";
+import { DataTypes, Model } from "sequelize";
+import bcrypt from "bcrypt";
 
-export function initUser(sequelize) {
-  const User = sequelize.define(
-    "User",
+export const initUser = (sequelize) => {
+  class User extends Model {
+    async comparePassword(candidatePassword) {
+      return await bcrypt.compare(candidatePassword, this.password);
+    }
+  }
+
+  User.init(
     {
-      id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
+      name: { type: DataTypes.STRING, allowNull: false },
+      // TÉLÉPHONE : OBLIGATOIRE ET UNIQUE
+      phone: { 
+        type: DataTypes.STRING, 
+        allowNull: false, 
+        unique: true 
       },
-      name: {
-        type: DataTypes.STRING(100),
-        allowNull: false,
+      // EMAIL : OPTIONNEL (allowNull: true)
+      email: { 
+        type: DataTypes.STRING, 
+        allowNull: true, 
+        unique: true 
       },
-      email: {
-        type: DataTypes.STRING(255),
-        allowNull: false,
-        unique: true,
-      },
-      password: {
-        type: DataTypes.STRING(255),
-        allowNull: false,
-      },
+      password: { type: DataTypes.STRING, allowNull: false },
       role: {
         type: DataTypes.ENUM("ADMIN", "VENDOR"),
-        allowNull: false,
+        defaultValue: "VENDOR",
       },
     },
     {
-      tableName: "users",
-      timestamps: true,
+      sequelize,
+      modelName: "User",
+      tableName: "Users",
       hooks: {
         beforeCreate: async (user) => {
-          if (user.password && user.role === "VENDOR") {
+          if (user.password) {
             user.password = await bcrypt.hash(user.password, 10);
           }
         },
         beforeUpdate: async (user) => {
-          if (user.changed("password") && user.password) {
+          if (user.changed("password")) {
             user.password = await bcrypt.hash(user.password, 10);
           }
         },
@@ -46,10 +48,5 @@ export function initUser(sequelize) {
     }
   );
 
-  User.prototype.comparePassword = function (plainPassword) {
-    if (this.role === "ADMIN") return Promise.resolve(plainPassword === "admin123");
-    return bcrypt.compare(plainPassword, this.password);
-  };
-
   return User;
-}
+};

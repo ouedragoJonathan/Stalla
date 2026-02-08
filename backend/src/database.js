@@ -40,6 +40,7 @@ export async function initDatabase() {
     await User.create({
       name: "Admin",
       email: "admin@example.com",
+      phone: "00000000",
       password: "admin123",
       role: "ADMIN",
     });

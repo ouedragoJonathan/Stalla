@@ -16,6 +16,11 @@ import { authenticate, authorize } from "./middlewares/auth.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
+app.use((req, res, next) => {
+  console.log(`Requête reçue : ${req.method} ${req.url}`);
+  next();
+});
+
 app.use(express.json());
 app.use("/receipts", express.static(path.join(process.cwd(), "receipts")));
 
