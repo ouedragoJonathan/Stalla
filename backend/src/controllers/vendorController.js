@@ -20,29 +20,56 @@ export const listVendors = async (req, res) => {
 
 export const createVendor = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-    if (!name || !email || !password) {
+    // AJOUT DE PHONE ICI
+    const { name, phone, password, email } = req.body;
+
+    // LE PHONE DEVIENT OBLIGATOIRE, L'EMAIL EST FACULTATIF
+    if (!name || !phone || !password) {
       return sendResponse(res, {
         status: 400,
         success: false,
         message: "Champs obligatoires manquants",
-        errors: { fields: "name, email, password requis" },
+        errors: { fields: "name, phone, password requis" },
       });
     }
-    const existing = await User.findOne({ where: { email } });
-    if (existing) {
+
+    // VÉRIFICATION SI LE TÉLÉPHONE EST DÉJÀ UTILISÉ
+    const existingPhone = await User.findOne({ where: { phone } });
+    if (existingPhone) {
       return sendResponse(res, {
         status: 400,
         success: false,
-        message: "Email déjà utilisé",
-        errors: { email: "Un compte existe déjà avec cet email" },
+        message: "Numéro de téléphone déjà utilisé",
+        errors: { phone: "Un compte existe déjà avec ce numéro" },
       });
     }
-    const vendor = await User.create({ name, email, password, role: "VENDOR" });
+
+    // SI UN EMAIL EST FOURNI, ON VÉRIFIE SON UNICITÉ
+    if (email) {
+      const existingEmail = await User.findOne({ where: { email } });
+      if (existingEmail) {
+        return sendResponse(res, {
+          status: 400,
+          success: false,
+          message: "Email déjà utilisé",
+          errors: { email: "Un compte existe déjà avec cet email" },
+        });
+      }
+    }
+
+    // CRÉATION AVEC PHONE
+    const vendor = await User.create({ 
+      name, 
+      phone, 
+      email: email || null, // Email peut être null
+      password, 
+      role: "VENDOR" 
+    });
+
     return sendResponse(res, {
       status: 201,
       message: "Vendeur créé avec succès",
-      data: { id: vendor.id, name: vendor.name, email: vendor.email, role: vendor.role },
+      data: { id: vendor.id, name: vendor.name, phone: vendor.phone, email: vendor.email, role: vendor.role },
     });
   } catch (err) {
     return sendResponse(res, {
@@ -137,7 +164,7 @@ export const getVendorById = async (req, res) => {
 export const updateVendor = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, password } = req.body;
+    const { name, email, phone, password } = req.body;
     const vendor = await User.findOne({ where: { id, role: "VENDOR" } });
     if (!vendor) {
       return sendResponse(res, {
@@ -147,14 +174,15 @@ export const updateVendor = async (req, res) => {
         errors: { vendor: "Aucun vendeur avec cet id" },
       });
     }
-    if (name !== undefined || email !== undefined || password !== undefined) {
+    // MODIFICATION INTERDITE POUR L'ADMIN SUR CES CHAMPS
+    if (name !== undefined || email !== undefined || phone !== undefined || password !== undefined) {
       return sendResponse(res, {
         status: 403,
         success: false,
         message: "Accès refusé",
         errors: {
           permission:
-            "L'administrateur ne peut pas modifier les informations personnelles d'un vendeur (nom, email, mot de passe). Seul le vendeur peut modifier ses propres informations.",
+            "L'administrateur ne peut pas modifier les informations personnelles d'un vendeur. Seul le vendeur peut le faire.",
         },
       });
     }
@@ -197,17 +225,20 @@ export const deleteVendor = async (req, res) => {
 
 export const updateMe = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, phone, password } = req.body;
     const vendorId = req.user.id;
     const vendor = await User.findByPk(vendorId);
+
     if (!vendor || vendor.role !== "VENDOR") {
       return sendResponse(res, {
         status: 404,
         success: false,
         message: "Vendeur introuvable",
-        errors: { vendor: "Aucun vendeur avec cet id" },
+        errors: { vendor: "Inconnu" },
       });
     }
+
+    // VÉRIFICATION UNICITÉ EMAIL
     if (email && email !== vendor.email) {
       const existing = await User.findOne({ where: { email, id: { [Op.ne]: vendorId } } });
       if (existing) {
@@ -215,13 +246,29 @@ export const updateMe = async (req, res) => {
           status: 400,
           success: false,
           message: "Email déjà utilisé",
-          errors: { email: "Cet email est déjà utilisé par un autre compte" },
+          errors: { email: "Cet email appartient déjà à un autre compte" },
         });
       }
     }
+
+    // VÉRIFICATION UNICITÉ PHONE
+    if (phone && phone !== vendor.phone) {
+      const existingPhone = await User.findOne({ where: { phone, id: { [Op.ne]: vendorId } } });
+      if (existingPhone) {
+        return sendResponse(res, {
+          status: 400,
+          success: false,
+          message: "Téléphone déjà utilisé",
+          errors: { phone: "Ce numéro appartient déjà à un autre compte" },
+        });
+      }
+    }
+
     if (name !== undefined) vendor.name = name;
     if (email !== undefined) vendor.email = email;
+    if (phone !== undefined) vendor.phone = phone;
     if (password !== undefined) vendor.password = password;
+
     await vendor.save();
     const updatedVendor = await User.findByPk(vendor.id, userAttrs);
     return sendResponse(res, { status: 200, message: "Profil modifié avec succès", data: updatedVendor.toJSON() });
