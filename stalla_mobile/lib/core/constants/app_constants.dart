@@ -1,11 +1,13 @@
 class AppConstants {
   static const String appName = 'STALLA';
-  static const String apiBaseUrl = 'http://192.168.100.84:4000/api/v1';
-  
+  static const String apiBaseUrl = 'http://192.168.100.84:4000/api';
+  // Valeurs possibles: 'orange' | 'earth'
+  static const String colorPalette = 'orange';
+
   // Storage Keys
   static const String tokenKey = 'auth_token';
   static const String userKey = 'user_data';
-  
+
   // Routes
   static const String loginRoute = '/login';
   static const String homeRoute = '/home';

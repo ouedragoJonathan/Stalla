@@ -1,30 +1,38 @@
 import 'package:equatable/equatable.dart';
 
 class Stand extends Equatable {
-  final int id;
+  final int? id;
   final String code;
   final String zone;
-  final double surface;
+  final double? surface;
   final int monthlyRent;
   final String? status;
+  final String? endDate;
+  final int? daysRemaining;
 
   const Stand({
-    required this.id,
+    this.id,
     required this.code,
     required this.zone,
-    required this.surface,
+    this.surface,
     required this.monthlyRent,
     this.status,
+    this.endDate,
+    this.daysRemaining,
   });
 
   factory Stand.fromJson(Map<String, dynamic> json) {
+    final rawRent = json['monthly_price'] ?? json['monthlyRent'] ?? 0;
+
     return Stand(
-      id: json['id'],
-      code: json['code'],
-      zone: json['zone'],
-      surface: (json['surface'] as num).toDouble(),
-      monthlyRent: json['monthlyRent'],
-      status: json['status'],
+      id: json['id'] as int?,
+      code: (json['code'] ?? json['stall_code'] ?? '') as String,
+      zone: (json['zone'] ?? '') as String,
+      surface: json['surface'] != null ? (json['surface'] as num).toDouble() : null,
+      monthlyRent: (rawRent as num).toInt(),
+      status: json['status'] as String?,
+      endDate: json['end_date'] as String?,
+      daysRemaining: json['days_remaining'] as int?,
     );
   }
 
@@ -34,11 +42,13 @@ class Stand extends Equatable {
       'code': code,
       'zone': zone,
       'surface': surface,
-      'monthlyRent': monthlyRent,
+      'monthly_price': monthlyRent,
       'status': status,
+      'end_date': endDate,
+      'days_remaining': daysRemaining,
     };
   }
 
   @override
-  List<Object?> get props => [id, code, zone, surface, monthlyRent, status];
+  List<Object?> get props => [id, code, zone, surface, monthlyRent, status, endDate, daysRemaining];
 }

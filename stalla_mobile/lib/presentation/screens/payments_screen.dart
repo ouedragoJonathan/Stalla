@@ -22,7 +22,6 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
     });
   }
 
-  // Fonctions de formatage conservées
   String _formatCurrency(int amount) {
     final formatter = NumberFormat('#,###', 'fr_FR');
     return '${formatter.format(amount)} F';
@@ -32,24 +31,8 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
     try {
       final date = DateTime.parse(dateString);
       return DateFormat('dd MMMM yyyy', 'fr_FR').format(date);
-    } catch (e) { return dateString; }
-  }
-
-  String _getPaymentMethodLabel(String? method) {
-    switch (method?.toUpperCase()) {
-      case 'CASH': return 'Espèces';
-      case 'ORANGE_MONEY': return 'Orange Money';
-      case 'MOOV_MONEY': return 'Moov Money';
-      default: return 'Autre';
-    }
-  }
-
-  IconData _getPaymentIcon(String? method) {
-    switch (method?.toUpperCase()) {
-      case 'CASH': return Icons.payments_outlined;
-      case 'ORANGE_MONEY':
-      case 'MOOV_MONEY': return Icons.phonelink_ring_rounded;
-      default: return Icons.account_balance_wallet_outlined;
+    } catch (e) {
+      return dateString;
     }
   }
 
@@ -82,16 +65,16 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
           return RefreshIndicator(
             onRefresh: () => paymentProvider.fetchPayments(),
             color: AppColors.orangePantone,
-            child: payments.isEmpty 
-              ? _buildEmptyState(context)
-              : ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  itemCount: payments.length,
-                  itemBuilder: (context, index) {
-                    final payment = payments[index];
-                    return _buildPaymentCard(payment);
-                  },
-                ),
+            child: payments.isEmpty
+                ? _buildEmptyState(context)
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    itemCount: payments.length,
+                    itemBuilder: (context, index) {
+                      final payment = payments[index];
+                      return _buildPaymentCard(payment);
+                    },
+                  ),
           );
         },
       ),
@@ -106,8 +89,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            // ignore: deprecated_member_use
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -118,7 +100,6 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
         child: IntrinsicHeight(
           child: Row(
             children: [
-              // Barre latérale de couleur
               Container(
                 width: 6,
                 color: AppColors.orangePantone,
@@ -130,29 +111,26 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
                     children: [
                       Row(
                         children: [
-                          // Icône de méthode de paiement
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              // ignore: deprecated_member_use
-                              color: AppColors.orangePantone.withOpacity(0.1),
+                              color: AppColors.orangePantone.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Icon(
-                              _getPaymentIcon(payment.method),
+                            child: const Icon(
+                              Icons.payments_outlined,
                               color: AppColors.orangePantone,
                               size: 24,
                             ),
                           ),
                           const SizedBox(width: 16),
-                          // Infos Paiement
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  _getPaymentMethodLabel(payment.method),
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                const Text(
+                                  'Paiement enregistré',
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                 ),
                                 Text(
                                   _formatDate(payment.date),
@@ -161,7 +139,6 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
                               ],
                             ),
                           ),
-                          // Montant
                           Text(
                             _formatCurrency(payment.amount),
                             style: const TextStyle(
@@ -184,38 +161,15 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
                               Icon(Icons.calendar_month, size: 14, color: Colors.grey[400]),
                               const SizedBox(width: 4),
                               Text(
-                                "Mois réglé: ${payment.monthPaid}",
+                                'Période: ${payment.monthPaid}',
                                 style: TextStyle(color: Colors.grey[500], fontSize: 12),
                               ),
                             ],
                           ),
-                          if (payment.receiptPath != null)
-                            InkWell(
-                              onTap: () => _downloadReceipt(payment.receiptPath!),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  // ignore: deprecated_member_use
-                                  color: Colors.orange.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                  // ignore: deprecated_member_use
-                                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
-                                ),
-                                child: const Row(
-                                  children: [
-                                    Icon(Icons.picture_as_pdf, size: 14, color: Colors.orange),
-                                    SizedBox(width: 4),
-                                    Text(
-                                      'REÇU',
-                                      style: TextStyle(
-                                        color: Colors.orange,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                          if ((payment.stallCode ?? '').isNotEmpty)
+                            Text(
+                              'Stand ${payment.stallCode}',
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
                             ),
                         ],
                       ),
@@ -243,20 +197,10 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Vos factures réglées apparaîtront ici.',
+            'Vos paiements apparaîtront ici.',
             style: TextStyle(color: Colors.grey[500]),
           ),
         ],
-      ),
-    );
-  }
-
-  // Ta fonction de téléchargement existante
-  Future<void> _downloadReceipt(String receiptPath) async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Téléchargement du reçu PDF...'),
-        backgroundColor: AppColors.orangePantone,
       ),
     );
   }

@@ -8,11 +8,11 @@ class PaymentRepository {
 
   Future<ApiResponse<List<Payment>>> getPayments() async {
     try {
-      final response = await _apiClient.get('/payments');
+      final response = await _apiClient.get('/vendor/payments');
 
       return ApiResponse<List<Payment>>.fromJson(
         response.data,
-        (data) => (data as List).map((e) => Payment.fromJson(e)).toList(),
+        (data) => (data as List).map((e) => Payment.fromJson(e as Map<String, dynamic>)).toList(),
       );
     } on DioException catch (e) {
       return ApiResponse(
@@ -23,11 +23,6 @@ class PaymentRepository {
   }
 
   Future<String?> downloadReceipt(String receiptPath) async {
-    try {
-      // Pour télécharger le PDF, on retourne l'URL complète
-      return '${_apiClient.options.baseUrl}$receiptPath';
-    } catch (e) {
-      return null;
-    }
+    return null;
   }
 }

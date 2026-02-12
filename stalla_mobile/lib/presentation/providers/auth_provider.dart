@@ -6,7 +6,7 @@ enum AuthStatus { initial, authenticated, unauthenticated, loading }
 
 class AuthProvider extends ChangeNotifier {
   final _authRepository = AuthRepository();
-  
+
   AuthStatus _status = AuthStatus.initial;
   User? _user;
   String? _errorMessage;
@@ -20,28 +20,43 @@ class AuthProvider extends ChangeNotifier {
     final isLoggedIn = await _authRepository.isLoggedIn();
     if (isLoggedIn) {
       _user = _authRepository.getCurrentUser();
-      _status = AuthStatus.authenticated;
+      if (_user?.role == 'VENDOR') {
+        _status = AuthStatus.authenticated;
+      } else {
+        await _authRepository.logout();
+        _user = null;
+        _status = AuthStatus.unauthenticated;
+      }
     } else {
       _status = AuthStatus.unauthenticated;
     }
     notifyListeners();
   }
 
-  Future<bool> login(String email, String password) async {
+  Future<bool> login(String identifier, String password) async {
     _status = AuthStatus.loading;
     _errorMessage = null;
     notifyListeners();
 
     final response = await _authRepository.login(
-      email: email,
+      identifier: identifier,
       password: password,
     );
 
     if (response.success && response.data != null) {
-      // Extraction sécurisée de l'utilisateur
-      _user = User.fromJson(response.data!['user']);
+      _user = User.fromJson(response.data!['user'] as Map<String, dynamic>);
+
+      if (_user?.role != 'VENDOR') {
+        await _authRepository.logout();
+        _user = null;
+        _status = AuthStatus.unauthenticated;
+        _errorMessage = 'Cette application est réservée aux vendeurs.';
+        notifyListeners();
+        return false;
+      }
+
       _status = AuthStatus.authenticated;
-      notifyListeners(); // Informe l'app que le statut a changé
+      notifyListeners();
       return true;
     } else {
       _errorMessage = response.message ?? 'Erreur de connexion';
