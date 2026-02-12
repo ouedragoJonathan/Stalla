@@ -4,40 +4,14 @@ export function initStand(sequelize) {
   const Stand = sequelize.define(
     "Stand",
     {
-      id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-      },
-      code: {
-        type: DataTypes.STRING(50),
-        allowNull: false,
-        unique: true,
-      },
-      zone: {
-        type: DataTypes.STRING(100),
-        allowNull: false,
-      },
-      surface: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: false,
-      },
-      monthlyRent: {
-        type: DataTypes.DECIMAL(12, 2),
-        allowNull: false,
-      },
-      status: {
-        type: DataTypes.ENUM("free", "occupied"),
-        allowNull: false,
-        defaultValue: "free",
-      },
-      currentVendorId: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        references: { model: "Users", key: "id" },
-      },
+      id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+      code: { type: DataTypes.STRING(50), allowNull: false, unique: true },
+      zone: { type: DataTypes.STRING(100), allowNull: false },
+      monthlyPrice: { type: DataTypes.DECIMAL(12, 2), allowNull: false, field: "monthly_price" },
+      status: { type: DataTypes.STRING(20), allowNull: false, defaultValue: "AVAILABLE" },
     },
-    { tableName: "stands", timestamps: true }
+    { tableName: "stalls", timestamps: true }
   );
+
   return Stand;
 }

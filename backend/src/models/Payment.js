@@ -4,39 +4,24 @@ export function initPayment(sequelize) {
   const Payment = sequelize.define(
     "Payment",
     {
-      id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-      },
-      vendorId: {
+      id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+      allocationId: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        references: { model: "Users", key: "id" },
+        field: "allocation_id",
+        references: { model: "allocations", key: "id" },
       },
-      standId: {
-        type: DataTypes.INTEGER,
+      amountPaid: { type: DataTypes.DECIMAL(12, 2), allowNull: false, field: "amount_paid" },
+      paymentDate: {
+        type: DataTypes.DATEONLY,
         allowNull: false,
-        references: { model: "stands", key: "id" },
+        defaultValue: DataTypes.NOW,
+        field: "payment_date",
       },
-      amount: {
-        type: DataTypes.DECIMAL(12, 2),
-        allowNull: false,
-      },
-      monthPaid: {
-        type: DataTypes.STRING(7),
-        allowNull: false,
-      },
-      method: {
-        type: DataTypes.STRING(50),
-        allowNull: false,
-      },
-      receiptPath: {
-        type: DataTypes.STRING(500),
-        allowNull: true,
-      },
+      period: { type: DataTypes.STRING(7), allowNull: false },
     },
     { tableName: "payments", timestamps: true }
   );
+
   return Payment;
 }

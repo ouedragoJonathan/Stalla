@@ -1,8 +1,9 @@
 import { Sequelize } from "sequelize";
 import { config } from "./config.js";
 import { initUser } from "./models/User.js";
+import { initVendor } from "./models/Vendor.js";
 import { initStand } from "./models/Stand.js";
-import { initDebt } from "./models/Debt.js";
+import { initAllocation } from "./models/Allocation.js";
 import { initPayment } from "./models/Payment.js";
 
 const sequelize = new Sequelize(config.db.database, config.db.user, config.db.password, {
@@ -13,36 +14,26 @@ const sequelize = new Sequelize(config.db.database, config.db.user, config.db.pa
 });
 
 const User = initUser(sequelize);
+const Vendor = initVendor(sequelize);
 const Stand = initStand(sequelize);
-const Debt = initDebt(sequelize);
+const Allocation = initAllocation(sequelize);
 const Payment = initPayment(sequelize);
 
-Stand.belongsTo(User, { foreignKey: "currentVendorId", as: "User" });
-User.hasMany(Stand, { foreignKey: "currentVendorId" });
+User.hasOne(Vendor, { foreignKey: "userId", as: "vendorProfile" });
+Vendor.belongsTo(User, { foreignKey: "userId", as: "user" });
 
-Debt.belongsTo(User, { foreignKey: "vendorId" });
-Debt.belongsTo(Stand, { foreignKey: "standId", as: "Stand" });
-User.hasMany(Debt, { foreignKey: "vendorId" });
-Stand.hasMany(Debt, { foreignKey: "standId" });
+Vendor.hasMany(Allocation, { foreignKey: "vendorId", as: "allocations" });
+Allocation.belongsTo(Vendor, { foreignKey: "vendorId", as: "vendor" });
 
-Payment.belongsTo(User, { foreignKey: "vendorId", as: "User" });
-Payment.belongsTo(Stand, { foreignKey: "standId", as: "Stand" });
-User.hasMany(Payment, { foreignKey: "vendorId" });
-Stand.hasMany(Payment, { foreignKey: "standId" });
+Stand.hasMany(Allocation, { foreignKey: "stallId", as: "allocations" });
+Allocation.belongsTo(Stand, { foreignKey: "stallId", as: "stall" });
 
-export { sequelize, User, Stand, Debt, Payment };
+Allocation.hasMany(Payment, { foreignKey: "allocationId", as: "payments" });
+Payment.belongsTo(Allocation, { foreignKey: "allocationId", as: "allocation" });
+
+export { sequelize, User, Vendor, Stand, Allocation, Payment };
 
 export async function initDatabase() {
   await sequelize.authenticate();
   await sequelize.sync({ alter: true });
-  const adminCount = await User.count({ where: { role: "ADMIN" } });
-  if (adminCount === 0) {
-    await User.create({
-      name: "Admin",
-      email: "admin@example.com",
-      phone: "00000000",
-      password: "admin123",
-      role: "ADMIN",
-    });
-  }
 }
