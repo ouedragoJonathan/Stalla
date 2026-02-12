@@ -1,14 +1,14 @@
 import express from "express";
-import { adminLogin, vendorLogin } from "../controllers/authController.js";
+import { login, registerAdmin } from "../controllers/authController.js";
 
 const router = express.Router();
 
 /**
  * @openapi
- * /api/v1/auth/admin/login:
+ * /api/auth/register-admin:
  *   post:
  *     tags: [Auth]
- *     summary: Connexion administrateur
+ *     summary: Créer un compte administrateur (Web)
  *     security: []
  *     requestBody:
  *       required: true
@@ -16,23 +16,25 @@ const router = express.Router();
  *         application/json:
  *           schema:
  *             type: object
- *             required: [email, password]
+ *             required: [name, email, password]
  *             properties:
+ *               name: { type: string }
  *               email: { type: string, format: email }
  *               password: { type: string }
  *     responses:
- *       200: { description: Connexion réussie, retourne token et user }
- *       400: { description: Email ou mot de passe manquant }
- *       401: { description: Identifiants invalides }
+ *       201:
+ *         description: Compte admin créé
+ *       400:
+ *         description: Données invalides
  */
-router.post("/admin/login", adminLogin);
+router.post("/register-admin", registerAdmin);
 
 /**
  * @openapi
- * /api/v1/auth/vendor/login:
+ * /api/auth/login:
  *   post:
  *     tags: [Auth]
- *     summary: Connexion vendeur
+ *     summary: Connexion (ADMIN ou VENDOR)
  *     security: []
  *     requestBody:
  *       required: true
@@ -40,15 +42,20 @@ router.post("/admin/login", adminLogin);
  *         application/json:
  *           schema:
  *             type: object
- *             required: [email, password]
+ *             required: [password]
  *             properties:
+ *               identifier: { type: string, description: "email ou téléphone" }
  *               email: { type: string, format: email }
+ *               phone: { type: string }
  *               password: { type: string }
  *     responses:
- *       200: { description: Connexion réussie, retourne token et user }
- *       400: { description: Email ou mot de passe manquant }
- *       401: { description: Identifiants invalides }
+ *       200:
+ *         description: Connexion réussie
+ *       400:
+ *         description: Champs manquants
+ *       401:
+ *         description: Identifiants invalides
  */
-router.post("/vendor/login", vendorLogin);
+router.post("/login", login);
 
 export default router;
