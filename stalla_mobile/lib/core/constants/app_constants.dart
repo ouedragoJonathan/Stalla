@@ -1,6 +1,7 @@
 class AppConstants {
   static const String appName = 'STALLA';
   static const String apiBaseUrl = 'http://192.168.100.84:4000/api';
+  static const String supportPhone = '+22900000000';
   // Valeurs possibles: 'orange' | 'earth'
   static const String colorPalette = 'orange';
 

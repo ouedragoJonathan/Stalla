@@ -1,5 +1,5 @@
 import express from "express";
-import { myBalance, myPayments, myStall, resetMyPassword } from "../controllers/vendorController.js";
+import { myBalance, myPayments, myProfile, myStall, resetMyPassword } from "../controllers/vendorController.js";
 import { authenticate, authorize } from "../middlewares/auth.js";
 
 const router = express.Router();
@@ -17,6 +17,18 @@ router.use(authenticate, authorize("VENDOR"));
  *       200: { description: Stand actif du vendeur }
  */
 router.get("/my-stall", myStall);
+
+/**
+ * @openapi
+ * /api/vendor/profile:
+ *   get:
+ *     tags: [Vendor]
+ *     summary: Profil vendeur (VENDOR)
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200: { description: Profil vendeur }
+ */
+router.get("/profile", myProfile);
 
 /**
  * @openapi

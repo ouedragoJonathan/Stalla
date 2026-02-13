@@ -1,8 +1,9 @@
 import crypto from "crypto";
 import { Op } from "sequelize";
-import { sequelize, User, Vendor, Stand, Allocation, Payment } from "../database.js";
+import { sequelize, User, Vendor, Stand, Allocation, Payment, Setting } from "../database.js";
 import { sendResponse } from "../utils/response.js";
 import { computeDebtForAllocation } from "../utils/debt.js";
+import { sendVendorWelcomeSms } from "../services/smsService.js";
 
 const periodRegex = /^\d{4}-\d{2}$/;
 
@@ -204,6 +205,18 @@ export async function createAdminVendor(req, res) {
 
     await tx.commit();
 
+    let smsStatus = null;
+    try {
+      const sms = await sendVendorWelcomeSms({
+        to: phone,
+        fullName: vendor.fullName,
+        password: generatedPassword,
+      });
+      smsStatus = sms;
+    } catch (smsErr) {
+      smsStatus = { ok: false, reason: smsErr.message };
+    }
+
     return sendResponse(res, {
       status: 201,
       message: "Vendeur créé avec succès",
@@ -215,6 +228,7 @@ export async function createAdminVendor(req, res) {
         phone: vendor.phone,
         business_type: vendor.businessType,
         default_password: generatedPassword,
+        sms: smsStatus,
       },
     });
   } catch (err) {
@@ -430,6 +444,53 @@ export async function reportDebtors(req, res) {
       status: 500,
       success: false,
       message: "Erreur lors de la génération du rapport des débiteurs",
+      errors: { server: err.message },
+    });
+  }
+}
+
+export async function getSupportSettings(req, res) {
+  try {
+    const setting = await Setting.findByPk("support_phone");
+    return sendResponse(res, {
+      status: 200,
+      message: "Paramètres support",
+      data: { support_phone: setting?.value || null },
+    });
+  } catch (err) {
+    return sendResponse(res, {
+      status: 500,
+      success: false,
+      message: "Erreur lors de la récupération des paramètres",
+      errors: { server: err.message },
+    });
+  }
+}
+
+export async function updateSupportSettings(req, res) {
+  try {
+    const { support_phone } = req.body;
+    if (!support_phone) {
+      return sendResponse(res, {
+        status: 400,
+        success: false,
+        message: "support_phone est requis",
+        errors: { support_phone: "support_phone obligatoire" },
+      });
+    }
+
+    await Setting.upsert({ key: "support_phone", value: support_phone });
+
+    return sendResponse(res, {
+      status: 200,
+      message: "Paramètres support mis à jour",
+      data: { support_phone },
+    });
+  } catch (err) {
+    return sendResponse(res, {
+      status: 500,
+      success: false,
+      message: "Erreur lors de la mise à jour des paramètres",
       errors: { server: err.message },
     });
   }

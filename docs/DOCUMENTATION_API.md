@@ -118,6 +118,9 @@ Body:
 
 Réponse contient `default_password`.
 
+SMS (Twilio):
+- Si Twilio est configuré, un SMS est envoyé au vendeur avec l'identifiant et le mot de passe.
+
 ## 3.3 Allocations
 
 ### POST `/api/admin/allocations`

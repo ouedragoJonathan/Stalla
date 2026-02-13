@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { Vendor, Allocation, Stand, Payment, User } from "../database.js";
+import { Vendor, Allocation, Stand, Payment, User, Setting } from "../database.js";
 import { sendResponse } from "../utils/response.js";
 import { computeDebtForAllocation } from "../utils/debt.js";
 
@@ -67,6 +67,45 @@ export async function myStall(req, res) {
       status: 500,
       success: false,
       message: "Erreur lors de la récupération du stand",
+      errors: { server: err.message },
+    });
+  }
+}
+
+export async function myProfile(req, res) {
+  try {
+    const vendor = await Vendor.findOne({
+      where: { userId: req.user.id },
+      include: [{ model: User, as: "user", attributes: ["email"] }],
+    });
+
+    if (!vendor) {
+      return sendResponse(res, {
+        status: 404,
+        success: false,
+        message: "Profil vendeur introuvable",
+        errors: { vendor: "Aucun profil vendeur lié à cet utilisateur" },
+      });
+    }
+
+    const supportSetting = await Setting.findByPk("support_phone");
+
+    return sendResponse(res, {
+      status: 200,
+      message: "Profil vendeur",
+      data: {
+        full_name: vendor.fullName,
+        phone: vendor.phone,
+        business_type: vendor.businessType,
+        email: vendor.user?.email || null,
+        support_phone: supportSetting?.value || null,
+      },
+    });
+  } catch (err) {
+    return sendResponse(res, {
+      status: 500,
+      success: false,
+      message: "Erreur lors de la récupération du profil",
       errors: { server: err.message },
     });
   }

@@ -52,27 +52,32 @@ class ProfileScreen extends StatelessWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Réinitialiser le mot de passe'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: currentController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Mot de passe actuel'),
+        content: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 320),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: currentController,
+                  obscureText: true,
+                  decoration: const InputDecoration(labelText: 'Mot de passe actuel'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: newController,
+                  obscureText: true,
+                  decoration: const InputDecoration(labelText: 'Nouveau mot de passe'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: confirmController,
+                  obscureText: true,
+                  decoration: const InputDecoration(labelText: 'Confirmer le mot de passe'),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: newController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Nouveau mot de passe'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: confirmController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Confirmer le mot de passe'),
-            ),
-          ],
+          ),
         ),
         actions: [
           TextButton(
@@ -201,18 +206,6 @@ class ProfileScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      Positioned(
-                        bottom: 0,
-                        right: 5,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: Colors.green, 
-                            shape: BoxShape.circle
-                          ),
-                          child: const Icon(Icons.check, color: Colors.white, size: 16),
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -221,7 +214,7 @@ class ProfileScreen extends StatelessWidget {
                   user?.name ?? 'Utilisateur',
                   style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
-                const Text('Vendeur Marché Certifié', style: TextStyle(color: Colors.grey)),
+                const Text('Vendeur', style: TextStyle(color: Colors.grey)),
                 
                 const SizedBox(height: 35),
 
@@ -247,7 +240,16 @@ class ProfileScreen extends StatelessWidget {
                         ? 'Stand ${vendorProvider.profile?.stand?.code ?? '-'}'
                         : 'Aucun stand assigné'
                   ),
-                  _buildProfileTile(Icons.verified_user_outlined, 'Rôle', 'Vendeur Professionnel'),
+                  _buildProfileTile(
+                    Icons.work_outline,
+                    'Activité',
+                    vendorProvider.profile?.businessType ?? 'Non renseignée',
+                  ),
+                  _buildProfileTile(
+                    Icons.support_agent,
+                    'Support',
+                    vendorProvider.profile?.supportPhone ?? AppConstants.supportPhone,
+                  ),
                 ]),
 
                 const SizedBox(height: 40),

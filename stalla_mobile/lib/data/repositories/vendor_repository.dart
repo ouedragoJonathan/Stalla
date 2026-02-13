@@ -23,6 +23,19 @@ class VendorRepository {
     final user = User.fromJson(userData);
 
     try {
+      final profileResponse = await _apiClient.get('/vendor/profile');
+      final profileApi = ApiResponse<Map<String, dynamic>>.fromJson(
+        profileResponse.data,
+        (data) => data as Map<String, dynamic>,
+      );
+
+      String? businessType;
+      String? supportPhone;
+      if (profileApi.success && profileApi.data != null) {
+        businessType = profileApi.data!['business_type'] as String?;
+        supportPhone = profileApi.data!['support_phone'] as String?;
+      }
+
       final response = await _apiClient.get('/vendor/my-stall');
       final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(
         response.data,
@@ -34,11 +47,24 @@ class VendorRepository {
         return ApiResponse(
           success: true,
           message: apiResponse.message,
-          data: VendorProfile(user: user, stand: stand),
+          data: VendorProfile(
+            user: user,
+            stand: stand,
+            businessType: businessType,
+            supportPhone: supportPhone,
+          ),
         );
       }
 
-      return ApiResponse(success: true, data: VendorProfile(user: user, stand: null));
+      return ApiResponse(
+        success: true,
+        data: VendorProfile(
+          user: user,
+          stand: null,
+          businessType: businessType,
+          supportPhone: supportPhone,
+        ),
+      );
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
         return ApiResponse(

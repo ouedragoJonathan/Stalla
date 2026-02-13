@@ -4,9 +4,11 @@ import {
   createAdminStand,
   createAdminVendor,
   createAllocation,
+  getSupportSettings,
   listAdminStalls,
   listAdminVendors,
   reportDebtors,
+  updateSupportSettings,
 } from "../controllers/adminController.js";
 import { authenticate, authorize } from "../middlewares/auth.js";
 
@@ -142,5 +144,8 @@ router.post("/payments", createAdminPayment);
  *       200: { description: Liste des débiteurs }
  */
 router.get("/reports/debtors", reportDebtors);
+
+router.get("/settings/support", getSupportSettings);
+router.put("/settings/support", updateSupportSettings);
 
 export default router;

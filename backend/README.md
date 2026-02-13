@@ -79,6 +79,11 @@ DB_USER=root
 DB_PASSWORD=votre_mot_de_passe_mysql
 JWT_SECRET=une_cle_secrete_longue_et_complexe
 JWT_EXPIRES_IN=7d
+
+# Twilio (SMS)
+TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TWILIO_AUTH_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TWILIO_FROM_NUMBER=+12345678900
 ```
 
 - Créer la base MySQL `stalla` (ou le nom défini dans `DB_NAME`) avant le premier lancement
@@ -210,4 +215,3 @@ Après le premier démarrage : `admin@stalla.com` / `admin123`
 - **Swagger UI** : http://localhost:4000/api-docs
 - **Guide Postman** : voir [docs/GUIDE_POSTMAN.md](docs/GUIDE_POSTMAN.md)
 - **Documentation API complète** : voir [docs/DOCUMENTATION_API.md](docs/DOCUMENTATION_API.md)
-
