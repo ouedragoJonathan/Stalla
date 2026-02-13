@@ -8,6 +8,10 @@ const links = [
   { to: "/admin/allocations", label: "Allocations", hint: "Attributions" },
   { to: "/admin/payments", label: "Paiements", hint: "Encaissements" },
   { to: "/admin/debtors", label: "Débiteurs", hint: "Risque" },
+<<<<<<< HEAD
+=======
+  { to: "/admin/support", label: "Support", hint: "Numéro aide" },
+>>>>>>> temp-sync-web
 ];
 
 export function AdminLayout() {

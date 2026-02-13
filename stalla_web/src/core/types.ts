@@ -77,3 +77,10 @@ export interface Debtor {
   total_due: number;
   current_debt: number;
 }
+<<<<<<< HEAD
+=======
+
+export interface SupportSettings {
+  support_phone: string | null;
+}
+>>>>>>> temp-sync-web

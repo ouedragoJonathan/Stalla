@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Panel } from "../../../components/ui/Panel";
@@ -61,6 +62,18 @@ export function DebtorsPage() {
           </table>
         </div>
       </Panel>
+=======
+export function DebtorsPage() {
+  return (
+    <section className="page-card">
+      <div className="page-header">
+        <div>
+          <h1>Débiteurs</h1>
+          <p className="helper-text">Suivi des retards et impayés.</p>
+        </div>
+      </div>
+      <p className="helper-text">À brancher sur /api/admin/debtors.</p>
+>>>>>>> temp-sync-web
     </section>
   );
 }

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { FormEvent, useEffect, useState } from "react";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Panel } from "../../../components/ui/Panel";
@@ -79,6 +80,18 @@ export function AllocationsPage() {
         </form>
         {message && <p className="form-message">{message}</p>}
       </Panel>
+=======
+export function AllocationsPage() {
+  return (
+    <section className="page-card">
+      <div className="page-header">
+        <div>
+          <h1>Allocations</h1>
+          <p className="helper-text">Attributions des stands aux vendeurs.</p>
+        </div>
+      </div>
+      <p className="helper-text">À brancher sur /api/admin/allocations.</p>
+>>>>>>> temp-sync-web
     </section>
   );
 }

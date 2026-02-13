@@ -1,4 +1,5 @@
 import { apiRequest } from "../../core/api";
+<<<<<<< HEAD
 import type { Allocation, ApiResponse, Debtor, Payment, Stand, Vendor } from "../../core/types";
 
 export const adminService = {
@@ -29,3 +30,16 @@ export const adminService = {
 
   listDebtors: (): Promise<ApiResponse<Debtor[]>> => apiRequest<Debtor[]>("/admin/reports/debtors"),
 };
+=======
+import type { ApiResponse, SupportSettings } from "../../core/types";
+
+export async function getSupportSettings(): Promise<ApiResponse<SupportSettings>> {
+  return apiRequest<SupportSettings>("/admin/settings/support");
+}
+
+export async function updateSupportSettings(payload: {
+  support_phone: string;
+}): Promise<ApiResponse<SupportSettings>> {
+  return apiRequest<SupportSettings>("/admin/settings/support", "PUT", payload);
+}
+>>>>>>> temp-sync-web

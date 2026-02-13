@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { FormEvent, useState } from "react";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Panel } from "../../../components/ui/Panel";
@@ -46,6 +47,18 @@ export function PaymentsPage() {
         </form>
         {message && <p className="form-message">{message}</p>}
       </Panel>
+=======
+export function PaymentsPage() {
+  return (
+    <section className="page-card">
+      <div className="page-header">
+        <div>
+          <h1>Paiements</h1>
+          <p className="helper-text">Encaissements des loyers.</p>
+        </div>
+      </div>
+      <p className="helper-text">À brancher sur /api/admin/payments.</p>
+>>>>>>> temp-sync-web
     </section>
   );
 }

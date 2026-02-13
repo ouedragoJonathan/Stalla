@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { FormEvent, useEffect, useState } from "react";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Panel } from "../../../components/ui/Panel";
@@ -107,6 +108,18 @@ export function VendorsPage() {
           </table>
         </div>
       </Panel>
+=======
+export function VendorsPage() {
+  return (
+    <section className="page-card">
+      <div className="page-header">
+        <div>
+          <h1>Vendeurs</h1>
+          <p className="helper-text">Gestion des comptes vendeurs.</p>
+        </div>
+      </div>
+      <p className="helper-text">À brancher sur /api/admin/vendors.</p>
+>>>>>>> temp-sync-web
     </section>
   );
 }

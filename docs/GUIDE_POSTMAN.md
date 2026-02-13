@@ -1,216 +1,220 @@
-# Guide de test de l’API STALLA avec Postman
+# Guide Postman - API STALLA (Spec v2)
 
-Ce guide permet de configurer Postman et de tester toutes les routes de l’API STALLA (gestion de stands, vendeurs et paiements).
-
----
+Ce guide correspond au backend actuel basé sur les routes:
+- `/api/auth/*`
+- `/api/admin/*`
+- `/api/vendor/*`
 
 ## 1. Prérequis
 
-- **Postman** installé ([postman.com](https://www.postman.com/downloads/))
-- **Serveur API** démarré : `npm start` (par défaut sur `http://localhost:4000`)
-- **Base MySQL** configurée (fichier `.env`) et accessible
+- API lancée sur `http://localhost:4000`
+- Base MySQL accessible
+- Postman installé
 
----
+## 2. Environnement Postman
 
-## 2. Créer un environnement Postman
+Créer un environnement avec:
 
-1. Dans Postman : **Environments** → **Create Environment**.
-2. Nom : par ex. **STALLA – Local**.
-3. Ajouter les variables :
+- `baseUrl` = `http://localhost:4000`
+- `adminToken` = *(vide)*
+- `vendorToken` = *(vide)*
+- `vendorId` = *(vide)*
+- `stallId` = *(vide)*
+- `allocationId` = *(vide)*
 
-   | Variable   | Valeur initiale      | Description              |
-   |-----------|----------------------|--------------------------|
-   | `baseUrl` | `http://localhost:4000` | URL de base de l’API   |
-   | `token`   | *(laisser vide)*     | JWT après login (rempli manuellement ou par script) |
+## 3. Authentification
 
-4. **Save** puis sélectionner cet environnement en haut à droite.
+## 3.1 Register Admin (web)
 
-Dans les requêtes, utilisez `{{baseUrl}}` pour l’URL (ex. `{{baseUrl}}/api/v1/auth/admin/login`).
-
----
-
-## 3. Authentification (obtenir le token)
-
-Les routes protégées exigent un **JWT** dans le header :
-
-```http
-Authorization: Bearer <votre_token>
-```
-
-### 3.1 Connexion Admin
-
-- **Méthode :** `POST`
-- **URL :** `{{baseUrl}}/api/v1/auth/admin/login`
-- **Body :** onglet **Body** → **raw** → **JSON**
+- **POST** `{{baseUrl}}/api/auth/register-admin`
+- Body:
 
 ```json
 {
-  "email": "admin@stalla.com",
+  "name": "Admin Principal",
+  "email": "admin.web@example.com",
+  "password": "AdminPass123!"
+}
+```
+
+## 3.2 Login (route unique)
+
+- **POST** `{{baseUrl}}/api/auth/login`
+- Body:
+
+```json
+{
+  "identifier": "admin@stalla.com",
   "password": "admin123"
 }
 ```
 
-*(Remplacez par l’email/mot de passe admin configurés en base.)*
-
-- **Réponse attendue (200) :**  
-  `data.token` et `data.user`. Copiez `data.token`.
-
-### 3.2 Connexion Vendeur
-
-- **Méthode :** `POST`
-- **URL :** `{{baseUrl}}/api/v1/auth/vendor/login`
-- **Body :** **raw** → **JSON**
+Réponse attendue:
 
 ```json
 {
-  "email": "vendeur@example.com",
-  "password": "motdepasse123"
+  "success": true,
+  "message": "Connexion réussie",
+  "data": {
+    "token": "...",
+    "user": {
+      "id": 1,
+      "role": "ADMIN",
+      "name": "Admin"
+    }
+  }
 }
 ```
 
-- Copiez `data.token` pour les requêtes vendeur.
-
-### 3.3 Utiliser le token dans Postman
-
-**Option A – Header manuel**  
-Pour chaque requête protégée : onglet **Headers** →  
-`Authorization` : `Bearer {{token}}`  
-(après avoir mis la valeur de `token` dans l’environnement).
-
-**Option B – Enregistrer le token après login**  
-Dans l’onglet **Tests** de la requête **Login (admin ou vendeur)** :
+Script Postman (Tests) pour stocker un token selon le rôle:
 
 ```javascript
 const res = pm.response.json();
-if (res.data && res.data.token) {
-  pm.environment.set("token", res.data.token);
+if (res?.data?.token && res?.data?.user?.role === "ADMIN") {
+  pm.environment.set("adminToken", res.data.token);
+}
+if (res?.data?.token && res?.data?.user?.role === "VENDOR") {
+  pm.environment.set("vendorToken", res.data.token);
 }
 ```
 
-Ensuite, dans **Authorization** des autres requêtes : Type **Bearer Token** → Token : `{{token}}`.
+## 4. Flux Admin recommandé
 
----
+Toutes les routes admin utilisent:
+- Header `Authorization: Bearer {{adminToken}}`
 
-## 4. Requêtes par section
+## 4.1 Créer un stand
 
-Toutes les URLs sont en `{{baseUrl}}/...`. Pour les routes protégées, utilisez **Authorization** → **Bearer Token** → `{{token}}`.
-
-### 4.1 Auth
-
-| Action        | Méthode | URL |
-|---------------|---------|-----|
-| Login admin   | POST    | `{{baseUrl}}/api/v1/auth/admin/login` |
-| Login vendeur | POST   | `{{baseUrl}}/api/v1/auth/vendor/login` |
-
-Body (JSON) : `{ "email": "...", "password": "..." }`.
-
----
-
-### 4.2 Stands (token ADMIN ou VENDOR pour GET ; ADMIN seul pour les autres)
-
-| Action           | Méthode | URL | Body / paramètres |
-|------------------|---------|-----|-------------------|
-| Liste des stands | GET     | `{{baseUrl}}/api/v1/stands` | Query : `?status=free` ou `?status=occupied` (optionnel) |
-| Détail stand     | GET     | `{{baseUrl}}/api/v1/stands/1` | `1` = id du stand |
-| Créer stand      | POST    | `{{baseUrl}}/api/v1/stands` | Voir ci‑dessous |
-| Modifier stand   | PUT     | `{{baseUrl}}/api/v1/stands/1` | Champs à modifier (code, zone, surface, monthlyRent) |
-| Supprimer stand  | DELETE  | `{{baseUrl}}/api/v1/stands/1` | — |
-| Assigner vendeur | POST    | `{{baseUrl}}/api/v1/stands/1/assign` | `{ "vendorId": 2 }` |
-
-**Exemple Body – Créer un stand (POST /api/v1/stands) :**
+- **POST** `{{baseUrl}}/api/admin/stalls`
+- Body:
 
 ```json
 {
-  "code": "A01",
-  "zone": "Hall principal",
-  "surface": 15.5,
-  "monthlyRent": 25000
+  "code": "A-101",
+  "zone": "Zone A",
+  "monthly_price": 30000
 }
 ```
 
-**Exemple Body – Assigner un vendeur (POST /api/v1/stands/1/assign) :**
+## 4.2 Lister les stands
+
+- **GET** `{{baseUrl}}/api/admin/stalls`
+
+## 4.3 Créer un vendeur
+
+- **POST** `{{baseUrl}}/api/admin/vendors`
+- Body:
 
 ```json
 {
-  "vendorId": 2
+  "full_name": "Vendeur Test",
+  "phone": "+22901020304",
+  "business_type": "Textile",
+  "email": "vendor1@example.com"
 }
 ```
 
----
+`email` est optionnel. La réponse contient `default_password` pour la première connexion vendeur.
 
-### 4.3 Vendeurs (ADMIN sauf /me et /me/debts = VENDOR)
+## 4.4 Lister les vendeurs
 
-| Action              | Méthode | URL | Rôle  |
-|---------------------|---------|-----|-------|
-| Liste vendeurs      | GET     | `{{baseUrl}}/api/v1/vendors` | ADMIN |
-| Créer vendeur       | POST    | `{{baseUrl}}/api/v1/vendors` | ADMIN |
-| Mon profil          | GET     | `{{baseUrl}}/api/v1/vendors/me` | VENDOR |
-| Mes dettes          | GET     | `{{baseUrl}}/api/v1/vendors/me/debts` | VENDOR |
-| Modifier mon profil | PUT     | `{{baseUrl}}/api/v1/vendors/me` | VENDOR |
-| Détail vendeur      | GET     | `{{baseUrl}}/api/v1/vendors/2` | ADMIN |
-| Modifier vendeur    | PUT     | `{{baseUrl}}/api/v1/vendors/2` | ADMIN |
-| Supprimer vendeur   | DELETE  | `{{baseUrl}}/api/v1/vendors/2` | ADMIN |
+- **GET** `{{baseUrl}}/api/admin/vendors`
 
-**Exemple Body – Créer un vendeur (POST /api/v1/vendors) :**
+## 4.5 Créer une allocation
+
+- **POST** `{{baseUrl}}/api/admin/allocations`
+- Body:
 
 ```json
 {
-  "name": "Jean Vendeur",
-  "email": "jean@example.com",
-  "password": "secret123"
+  "vendor_id": 1,
+  "stall_id": 1,
+  "start_date": "2026-02-01"
 }
 ```
 
-**Exemple Body – Modifier mon profil (PUT /api/v1/vendors/me) :**
+## 4.6 Enregistrer un paiement
+
+- **POST** `{{baseUrl}}/api/admin/payments`
+- Body:
 
 ```json
 {
-  "name": "Jean Dupont",
-  "email": "jean.dupont@example.com",
-  "password": "nouveaumdp"
+  "allocation_id": 1,
+  "amount_paid": 30000,
+  "period": "2026-02"
 }
 ```
 
-*(Tous les champs sont optionnels ; n’envoyer que ceux à modifier.)*
+## 4.7 Rapport débiteurs
 
----
+- **GET** `{{baseUrl}}/api/admin/reports/debtors`
 
-### 4.4 Paiements
+## 5. Flux Vendeur recommandé
 
-| Action            | Méthode | URL | Rôle |
-|-------------------|---------|-----|------|
-| Créer paiement    | POST    | `{{baseUrl}}/api/v1/payments` | ADMIN |
-| Liste paiements   | GET     | `{{baseUrl}}/api/v1/payments` | ADMIN (tous) / VENDOR (les siens) |
+Toutes les routes vendeur utilisent:
+- Header `Authorization: Bearer {{vendorToken}}`
 
-**Exemple Body – Créer un paiement (POST /api/v1/payments) :**
+## 5.1 Login vendeur
+
+- **POST** `{{baseUrl}}/api/auth/login`
+- Body:
 
 ```json
 {
-  "vendorId": 2,
-  "standId": 1,
-  "amount": 25000,
-  "monthPaid": "2025-02",
-  "method": "Espèces"
+  "identifier": "+22901020304",
+  "password": "mot_de_passe_genere"
 }
 ```
 
----
+Tu peux aussi envoyer l'email s'il existe:
 
-## 5. Vérification rapide (santé API)
+```json
+{
+  "identifier": "vendor1@example.com",
+  "password": "mot_de_passe_genere"
+}
+```
 
-- **Méthode :** GET  
-- **URL :** `{{baseUrl}}/health`  
-- **Auth :** aucune  
-- Réponse attendue : `200` avec message du type « API STALLA opérationnelle ».
+## 5.2 Mon stand
 
----
+- **GET** `{{baseUrl}}/api/vendor/my-stall`
 
-## 6. Ordre de test recommandé
+## 5.3 Mes paiements
 
-1. **Health** : GET `{{baseUrl}}/health`
-2. **Login admin** : POST login admin → enregistrer `token` (variable d’environnement ou Tests).
-3. **Stands** : GET liste → POST créer → GET par id → PUT modifier → POST assign (avec un `vendorId` existant).
-4. **Vendeurs** : POST créer vendeur → GET liste → GET `/me` avec token vendeur (login vendeur d’abord).
-5. **Paiements** : POST créer paiement (admin) → GET liste (admin puis vendeur pour comparer).
+- **GET** `{{baseUrl}}/api/vendor/payments`
 
-En suivant ce guide, vous pouvez tester l’intégralité de l’API STALLA depuis Postman.
+## 5.4 Ma balance
+
+- **GET** `{{baseUrl}}/api/vendor/balance`
+
+## 5.5 Réinitialiser mon mot de passe
+
+- **POST** `{{baseUrl}}/api/vendor/reset-password`
+- Body:
+
+```json
+{
+  "current_password": "mot_de_passe_genere",
+  "new_password": "MonNouveauPass@2026"
+}
+```
+
+Réponse typique:
+
+```json
+{
+  "success": true,
+  "message": "Situation financière du vendeur",
+  "data": {
+    "total_paid": 30000,
+    "total_due": 60000,
+    "current_debt": 30000
+  }
+}
+```
+
+## 6. Healthcheck
+
+- **GET** `{{baseUrl}}/health`
+- Auth: aucune

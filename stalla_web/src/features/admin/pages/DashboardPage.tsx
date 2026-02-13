@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Panel } from "../../../components/ui/Panel";
@@ -60,6 +61,18 @@ export function DashboardPage() {
           <li>Dette cumulée: {totalDebt.toLocaleString("fr-FR")}.</li>
         </ul>
       </Panel>
+=======
+export function DashboardPage() {
+  return (
+    <section className="page-card">
+      <div className="page-header">
+        <div>
+          <h1>Dashboard</h1>
+          <p className="helper-text">Vue globale du marché.</p>
+        </div>
+      </div>
+      <p className="helper-text">Connecté au backend, ajoute tes widgets clés ici.</p>
+>>>>>>> temp-sync-web
     </section>
   );
 }
