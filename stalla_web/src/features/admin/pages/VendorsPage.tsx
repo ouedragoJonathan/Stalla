@@ -1,115 +1,65 @@
-<<<<<<< HEAD
-import { FormEvent, useEffect, useState } from "react";
-import { PageHeader } from "../../../components/ui/PageHeader";
-import { Panel } from "../../../components/ui/Panel";
-import { adminService } from "../adminService";
+import { useEffect, useState } from "react";
 import type { Vendor } from "../../../core/types";
+import { createVendor, getVendors } from "../adminService";
 
 export function VendorsPage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [form, setForm] = useState({ full_name: "", phone: "", business_type: "", email: "" });
-  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState<string | null>(null);
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [businessType, setBusinessType] = useState("");
+  const [saving, setSaving] = useState(false);
 
   async function load() {
-    const response = await adminService.listVendors();
-    setMessage(response.message);
-    if (response.success) setVendors(response.data);
+    setLoading(true);
+    const response = await getVendors();
+    if (response.success) {
+      setVendors(response.data);
+    } else {
+      setMessage(response.message);
+    }
+    setLoading(false);
   }
 
   useEffect(() => {
-    void load();
+    load();
   }, []);
 
-  async function onSubmit(event: FormEvent) {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    const response = await adminService.createVendor({
-      full_name: form.full_name,
-      phone: form.phone,
-      business_type: form.business_type,
-      email: form.email || undefined,
-    });
-    setMessage(response.message);
-    if (response.success) {
-      setForm({ full_name: "", phone: "", business_type: "", email: "" });
-      void load();
-      alert(`Mot de passe initial vendeur: ${response.data.default_password}`);
+    if (!fullName.trim() || !phone.trim() || !businessType.trim()) {
+      setMessage("full_name, phone et business_type sont obligatoires.");
+      return;
     }
-  }
+    setSaving(true);
+    setMessage(null);
+    const response = await createVendor({
+      full_name: fullName.trim(),
+      phone: phone.trim(),
+      business_type: businessType.trim(),
+      email: email.trim() || null,
+    });
+    setSaving(false);
+    if (response.success) {
+      await load();
+      setFullName("");
+      setPhone("");
+      setEmail("");
+      setBusinessType("");
+      const sms = response.data.sms;
+      const smsMessage = sms
+        ? sms.ok
+          ? "SMS envoyé"
+          : `SMS non envoyé (${sms.reason ?? "erreur"})`
+        : "SMS non disponible";
+      setMessage(`Vendeur créé. Mot de passe: ${response.data.default_password}. ${smsMessage}.`);
+      return;
+    }
+    setMessage(response.message);
+  };
 
-  return (
-    <section>
-      <PageHeader title="Gestion des vendeurs" subtitle="Créer les comptes vendeurs et suivre leurs informations." />
-
-      <Panel title="Nouveau vendeur" subtitle="Le téléphone est obligatoire. L'email est optionnel.">
-        <form className="form-grid" onSubmit={onSubmit}>
-          <label>
-            Nom complet
-            <input
-              value={form.full_name}
-              onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-              placeholder="Nom vendeur"
-              required
-            />
-          </label>
-          <label>
-            Téléphone
-            <input
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              placeholder="+229..."
-              required
-            />
-          </label>
-          <label>
-            Activité
-            <input
-              value={form.business_type}
-              onChange={(e) => setForm({ ...form, business_type: e.target.value })}
-              placeholder="Textile"
-              required
-            />
-          </label>
-          <label>
-            Email (optionnel)
-            <input
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              placeholder="vendeur@example.com"
-            />
-          </label>
-          <button className="primary-btn">Créer le vendeur</button>
-        </form>
-        {message && <p className="form-message">{message}</p>}
-      </Panel>
-
-      <Panel title="Répertoire vendeurs">
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nom</th>
-                <th>Téléphone</th>
-                <th>Email</th>
-                <th>Activité</th>
-              </tr>
-            </thead>
-            <tbody>
-              {vendors.map((v) => (
-                <tr key={v.id}>
-                  <td>{v.id}</td>
-                  <td>{v.full_name}</td>
-                  <td>{v.phone}</td>
-                  <td>{v.email ?? "-"}</td>
-                  <td>{v.business_type}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Panel>
-=======
-export function VendorsPage() {
   return (
     <section className="page-card">
       <div className="page-header">
@@ -118,8 +68,59 @@ export function VendorsPage() {
           <p className="helper-text">Gestion des comptes vendeurs.</p>
         </div>
       </div>
-      <p className="helper-text">À brancher sur /api/admin/vendors.</p>
->>>>>>> temp-sync-web
+
+      {message && (
+        <div className={`alert ${message.includes("créé") ? "success" : ""}`}>{message}</div>
+      )}
+
+      <form className="form-stack" onSubmit={handleSubmit}>
+        <div className="form-field">
+          <label>Nom complet</label>
+          <input value={fullName} onChange={(event) => setFullName(event.target.value)} required />
+        </div>
+        <div className="form-field">
+          <label>Téléphone</label>
+          <input value={phone} onChange={(event) => setPhone(event.target.value)} required />
+        </div>
+        <div className="form-field">
+          <label>Activité</label>
+          <input value={businessType} onChange={(event) => setBusinessType(event.target.value)} required />
+        </div>
+        <div className="form-field">
+          <label>Email (optionnel)</label>
+          <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
+        </div>
+        <button className="btn-primary" type="submit" disabled={saving}>
+          {saving ? "Création..." : "Créer le vendeur"}
+        </button>
+      </form>
+
+      <div style={{ marginTop: 24 }}>
+        {loading ? (
+          <p className="helper-text">Chargement...</p>
+        ) : (
+          <table width="100%">
+            <thead>
+              <tr>
+                <th align="left">Nom</th>
+                <th align="left">Téléphone</th>
+                <th align="left">Email</th>
+                <th align="left">Activité</th>
+              </tr>
+            </thead>
+            <tbody>
+              {vendors.map((vendor) => (
+                <tr key={vendor.id}>
+                  <td>{vendor.full_name}</td>
+                  <td>{vendor.phone}</td>
+                  <td>{vendor.email ?? "-"}</td>
+                  <td>{vendor.business_type}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </section>
   );
 }

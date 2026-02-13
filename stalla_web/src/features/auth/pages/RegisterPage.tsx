@@ -27,6 +27,9 @@ export function RegisterPage() {
   return (
     <div className="auth-shell">
       <div className="auth-card">
+        <div className="auth-logo">
+          <img src="/logo.png" alt="Stalla" />
+        </div>
         <h1>Créer un admin</h1>
         <p>Crée le compte administrateur principal.</p>
 
@@ -58,11 +61,7 @@ export function RegisterPage() {
           <button className="btn-primary" type="submit" disabled={loading}>
             {loading ? "Création..." : "Créer le compte"}
           </button>
-          <button
-            className="btn-outline"
-            type="button"
-            onClick={() => navigate("/login")}
-          >
+          <button className="btn-outline" type="button" onClick={() => navigate("/login")}>
             Retour connexion
           </button>
         </form>

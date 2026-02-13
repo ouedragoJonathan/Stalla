@@ -10,14 +10,14 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 
-  --ink: #1a1a1a;
-  --muted: #6d6b67;
-  --cream: #f7ebd3;
-  --peach: #ffdbaf;
-  --copper: #ca7b42;
-  --brown: #823919;
-  --deep: #521908;
-  --border: #e7e1d8;
+  --ink: #2a1f1a;
+  --muted: #7b6f67;
+  --cream: #fff4ea;
+  --peach: #f7d7bf;
+  --copper: #f2a97b;
+  --brown: #cc7c63;
+  --deep: #a85a4d;
+  --border: #efe2d9;
   --card: #ffffff;
 }
 
@@ -27,7 +27,7 @@
 
 body {
   margin: 0;
-  background: radial-gradient(circle at top, #fdf8f2 0%, #f3eee6 45%, #ede7de 100%);
+  background: radial-gradient(circle at top, #fff7f1 0%, #f9f0e8 45%, #f4e9e0 100%);
 }
 
 a {
@@ -36,12 +36,9 @@ a {
 }
 
 button,
-input {
+input,
+select {
   font-family: inherit;
-}
-
-.app-shell {
-  min-height: 100vh;
 }
 
 .auth-shell {
@@ -58,6 +55,17 @@ input {
   padding: 32px;
   box-shadow: 0 20px 60px rgba(82, 25, 8, 0.15);
   border: 1px solid var(--border);
+}
+
+.auth-logo {
+  display: grid;
+  place-items: center;
+  margin-bottom: 16px;
+}
+
+.auth-logo img {
+  width: 140px;
+  height: auto;
 }
 
 .auth-card h1 {
@@ -85,7 +93,8 @@ input {
   color: var(--muted);
 }
 
-.form-field input {
+.form-field input,
+.form-field select {
   border-radius: 14px;
   border: 1px solid var(--border);
   padding: 12px 14px;
@@ -102,7 +111,7 @@ input {
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
-  box-shadow: 0 12px 20px rgba(202, 123, 66, 0.35);
+  box-shadow: 0 12px 20px rgba(242, 169, 123, 0.35);
 }
 
 .btn-primary:hover {
@@ -145,15 +154,14 @@ input {
   gap: 8px;
 }
 
-.brand-chip {
-  display: inline-flex;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: var(--deep);
-  color: #fff;
-  font-weight: 700;
-  letter-spacing: 2px;
-  font-size: 12px;
+.brand-logo {
+  width: 140px;
+}
+
+.brand-logo img {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .brand-block h2 {
@@ -238,6 +246,32 @@ input {
 .helper-text {
   color: var(--muted);
   margin: 6px 0 0;
+}
+
+.kpi-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.kpi-card {
+  border-radius: 18px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  background: linear-gradient(135deg, #ffffff 0%, #fff3ea 100%);
+  box-shadow: 0 10px 20px rgba(82, 25, 8, 0.08);
+}
+
+.kpi-label {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.kpi-value {
+  margin: 8px 0 0;
+  font-size: 24px;
+  color: var(--deep);
 }
 
 .alert {

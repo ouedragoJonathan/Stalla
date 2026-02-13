@@ -49,6 +49,8 @@ export interface Vendor {
   full_name: string;
   phone: string;
   business_type: string;
+  default_password?: string;
+  sms?: { ok: boolean; sid?: string; reason?: string } | null;
 }
 
 export interface Allocation {
@@ -77,10 +79,7 @@ export interface Debtor {
   total_due: number;
   current_debt: number;
 }
-<<<<<<< HEAD
-=======
 
 export interface SupportSettings {
   support_phone: string | null;
 }
->>>>>>> temp-sync-web

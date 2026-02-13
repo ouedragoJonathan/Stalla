@@ -1,69 +1,27 @@
-<<<<<<< HEAD
-import { useEffect, useMemo, useState } from "react";
-import { PageHeader } from "../../../components/ui/PageHeader";
-import { Panel } from "../../../components/ui/Panel";
-import { StatCard } from "../../../components/ui/StatCard";
-import { adminService } from "../adminService";
+import { useEffect, useState } from "react";
 import type { Debtor } from "../../../core/types";
+import { getDebtors } from "../adminService";
 
 export function DebtorsPage() {
   const [debtors, setDebtors] = useState<Debtor[]>([]);
-  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState<string | null>(null);
 
   async function load() {
-    const response = await adminService.listDebtors();
-    setMessage(response.message);
-    if (response.success) setDebtors(response.data);
+    setLoading(true);
+    const response = await getDebtors();
+    if (response.success) {
+      setDebtors(response.data);
+    } else {
+      setMessage(response.message);
+    }
+    setLoading(false);
   }
 
   useEffect(() => {
-    void load();
+    load();
   }, []);
 
-  const totalDebt = useMemo(
-    () => debtors.reduce((sum, debtor) => sum + debtor.current_debt, 0),
-    [debtors],
-  );
-
-  return (
-    <section>
-      <PageHeader title="Rapport Débiteurs" subtitle="Suivi des impayés vendeurs et exposition financière." />
-
-      <div className="stats-grid">
-        <StatCard label="Vendeurs débiteurs" value={debtors.length} tone="warning" />
-        <StatCard label="Dette cumulée" value={totalDebt.toLocaleString("fr-FR")} tone="danger" />
-      </div>
-
-      <Panel title="Détail des débiteurs" subtitle={message}>
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Nom</th>
-                <th>Téléphone</th>
-                <th>Email</th>
-                <th>Total dû</th>
-                <th>Total payé</th>
-                <th>Dette</th>
-              </tr>
-            </thead>
-            <tbody>
-              {debtors.map((d) => (
-                <tr key={d.vendor_id}>
-                  <td>{d.full_name}</td>
-                  <td>{d.phone}</td>
-                  <td>{d.email ?? "-"}</td>
-                  <td>{d.total_due.toLocaleString("fr-FR")}</td>
-                  <td>{d.total_paid.toLocaleString("fr-FR")}</td>
-                  <td>{d.current_debt.toLocaleString("fr-FR")}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Panel>
-=======
-export function DebtorsPage() {
   return (
     <section className="page-card">
       <div className="page-header">
@@ -72,8 +30,37 @@ export function DebtorsPage() {
           <p className="helper-text">Suivi des retards et impayés.</p>
         </div>
       </div>
-      <p className="helper-text">À brancher sur /api/admin/debtors.</p>
->>>>>>> temp-sync-web
+
+      {message && <div className="alert">{message}</div>}
+
+      {loading ? (
+        <p className="helper-text">Chargement...</p>
+      ) : (
+        <table width="100%">
+          <thead>
+            <tr>
+              <th align="left">Vendeur</th>
+              <th align="left">Téléphone</th>
+              <th align="left">Activité</th>
+              <th align="left">Total dû</th>
+              <th align="left">Payé</th>
+              <th align="left">Dette</th>
+            </tr>
+          </thead>
+          <tbody>
+            {debtors.map((debtor) => (
+              <tr key={debtor.vendor_id}>
+                <td>{debtor.full_name}</td>
+                <td>{debtor.phone}</td>
+                <td>{debtor.business_type}</td>
+                <td>{debtor.total_due}</td>
+                <td>{debtor.total_paid}</td>
+                <td>{debtor.current_debt}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </section>
   );
 }

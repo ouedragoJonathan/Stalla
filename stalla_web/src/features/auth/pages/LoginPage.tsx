@@ -26,6 +26,9 @@ export function LoginPage() {
   return (
     <div className="auth-shell">
       <div className="auth-card">
+        <div className="auth-logo">
+          <img src="/logo.png" alt="Stalla" />
+        </div>
         <h1>Connexion admin</h1>
         <p>Accède à l'espace de gestion du marché.</p>
 
@@ -48,11 +51,7 @@ export function LoginPage() {
           <button className="btn-primary" type="submit" disabled={loading}>
             {loading ? "Connexion..." : "Se connecter"}
           </button>
-          <button
-            className="btn-outline"
-            type="button"
-            onClick={() => navigate("/register")}
-          >
+          <button className="btn-outline" type="button" onClick={() => navigate("/register")}>
             Créer un admin
           </button>
         </form>

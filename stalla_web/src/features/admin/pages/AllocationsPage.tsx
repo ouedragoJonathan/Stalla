@@ -1,97 +1,141 @@
-<<<<<<< HEAD
-import { FormEvent, useEffect, useState } from "react";
-import { PageHeader } from "../../../components/ui/PageHeader";
-import { Panel } from "../../../components/ui/Panel";
-import { adminService } from "../adminService";
+import { useEffect, useMemo, useState } from "react";
 import type { Stand, Vendor } from "../../../core/types";
+import { createAllocation, getStalls, getVendors } from "../adminService";
+
+function todayISO(): string {
+  return new Date().toISOString().slice(0, 10);
+}
 
 export function AllocationsPage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [stands, setStands] = useState<Stand[]>([]);
+  const [stalls, setStalls] = useState<Stand[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState<string | null>(null);
   const [vendorId, setVendorId] = useState("");
   const [stallId, setStallId] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [message, setMessage] = useState("");
+  const [startDate, setStartDate] = useState(todayISO());
+  const [saving, setSaving] = useState(false);
+
+  async function load() {
+    setLoading(true);
+    const [vendorsResponse, stallsResponse] = await Promise.all([getVendors(), getStalls()]);
+    if (vendorsResponse.success) {
+      setVendors(vendorsResponse.data);
+    } else {
+      setMessage(vendorsResponse.message);
+    }
+    if (stallsResponse.success) {
+      setStalls(stallsResponse.data);
+    } else {
+      setMessage(stallsResponse.message);
+    }
+    setLoading(false);
+  }
 
   useEffect(() => {
-    async function loadBaseData() {
-      const [vendorsResponse, standsResponse] = await Promise.all([
-        adminService.listVendors(),
-        adminService.listStands(),
-      ]);
-      if (vendorsResponse.success) setVendors(vendorsResponse.data);
-      if (standsResponse.success) setStands(standsResponse.data);
-    }
-
-    void loadBaseData();
+    load();
   }, []);
 
-  async function onSubmit(event: FormEvent) {
+  const availableStalls = useMemo(
+    () => stalls.filter((stall) => stall.status === "AVAILABLE"),
+    [stalls],
+  );
+
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    const response = await adminService.createAllocation({
+    if (!vendorId || !stallId || !startDate) {
+      setMessage("Tous les champs sont obligatoires.");
+      return;
+    }
+    setSaving(true);
+    setMessage(null);
+    const response = await createAllocation({
       vendor_id: Number(vendorId),
       stall_id: Number(stallId),
       start_date: startDate,
     });
-    setMessage(response.message);
+    setSaving(false);
     if (response.success) {
+      await load();
       setVendorId("");
       setStallId("");
-      setStartDate("");
+      setMessage("Attribution créée avec succès.");
+      return;
     }
-  }
+    setMessage(response.message);
+  };
 
-  return (
-    <section>
-      <PageHeader title="Allocations" subtitle="Attribuer un vendeur à un stand disponible." />
-
-      <Panel title="Nouvelle attribution">
-        <form className="form-grid" onSubmit={onSubmit}>
-          <label>
-            Vendeur
-            <select value={vendorId} onChange={(e) => setVendorId(e.target.value)} required>
-              <option value="">Sélectionner</option>
-              {vendors.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {v.full_name} ({v.phone})
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            Stand
-            <select value={stallId} onChange={(e) => setStallId(e.target.value)} required>
-              <option value="">Sélectionner</option>
-              {stands.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.code} - {s.zone} ({s.status})
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            Date de début
-            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
-          </label>
-
-          <button className="primary-btn">Assigner le stand</button>
-        </form>
-        {message && <p className="form-message">{message}</p>}
-      </Panel>
-=======
-export function AllocationsPage() {
   return (
     <section className="page-card">
       <div className="page-header">
         <div>
           <h1>Allocations</h1>
-          <p className="helper-text">Attributions des stands aux vendeurs.</p>
+          <p className="helper-text">Attribuer un vendeur à un stand.</p>
         </div>
       </div>
-      <p className="helper-text">À brancher sur /api/admin/allocations.</p>
->>>>>>> temp-sync-web
+
+      {message && (
+        <div className={`alert ${message.includes("succès") ? "success" : ""}`}>{message}</div>
+      )}
+
+      {loading ? (
+        <p className="helper-text">Chargement...</p>
+      ) : (
+        <form className="form-stack" onSubmit={handleSubmit}>
+          <div className="form-field">
+            <label>Vendeur</label>
+            <select value={vendorId} onChange={(event) => setVendorId(event.target.value)} required>
+              <option value="">Sélectionner</option>
+              {vendors.map((vendor) => (
+                <option key={vendor.id} value={vendor.id}>
+                  {vendor.full_name} ({vendor.phone})
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="form-field">
+            <label>Stand disponible</label>
+            <select value={stallId} onChange={(event) => setStallId(event.target.value)} required>
+              <option value="">Sélectionner</option>
+              {availableStalls.map((stall) => (
+                <option key={stall.id} value={stall.id}>
+                  {stall.code} - {stall.zone}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="form-field">
+            <label>Date de début</label>
+            <input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} required />
+          </div>
+          <button className="btn-primary" type="submit" disabled={saving}>
+            {saving ? "Attribution..." : "Créer l'allocation"}
+          </button>
+        </form>
+      )}
+
+      <div style={{ marginTop: 24 }}>
+        <table width="100%">
+          <thead>
+            <tr>
+              <th align="left">Stand</th>
+              <th align="left">Statut</th>
+              <th align="left">Vendeur actif</th>
+              <th align="left">Début</th>
+            </tr>
+          </thead>
+          <tbody>
+            {stalls.map((stall) => (
+              <tr key={stall.id}>
+                <td>{stall.code}</td>
+                <td>{stall.status}</td>
+                <td>{stall.active_allocation?.vendor_name ?? "-"}</td>
+                <td>{stall.active_allocation?.start_date ?? "-"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
   );
 }

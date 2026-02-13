@@ -8,10 +8,7 @@ const links = [
   { to: "/admin/allocations", label: "Allocations", hint: "Attributions" },
   { to: "/admin/payments", label: "Paiements", hint: "Encaissements" },
   { to: "/admin/debtors", label: "Débiteurs", hint: "Risque" },
-<<<<<<< HEAD
-=======
   { to: "/admin/support", label: "Support", hint: "Numéro aide" },
->>>>>>> temp-sync-web
 ];
 
 export function AdminLayout() {
@@ -22,7 +19,9 @@ export function AdminLayout() {
     <div className="admin-shell">
       <aside className="admin-sidebar">
         <div className="brand-block">
-          <span className="brand-chip">STALLA</span>
+          <div className="brand-logo">
+            <img src="/logo.png" alt="Stalla" />
+          </div>
           <h2>Administration</h2>
           <p>Pilotage opérationnel du marché</p>
         </div>
