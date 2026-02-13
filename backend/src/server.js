@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 import { config } from "./config.js";
 import { initDatabase } from "./database.js";
@@ -12,6 +13,7 @@ import { authenticate, authorize } from "./middlewares/auth.js";
 
 const app = express();
 
+app.use(cors({ origin: true }));
 app.use(express.json());
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
