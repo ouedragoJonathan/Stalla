@@ -59,18 +59,18 @@ select {
 }
 
 .auth-logo-badge {
-  width: 76px;
-  height: 76px;
-  border-radius: 20px;
-  background: #0f0f0f;
+  width: 124px;
+  height: 124px;
+  border-radius: 0;
+  background: transparent;
   margin: 0 auto 14px;
   display: grid;
   place-items: center;
 }
 
 .auth-logo-badge img {
-  width: 56px;
-  height: 56px;
+  width: 124px;
+  height: 124px;
   object-fit: contain;
 }
 
@@ -129,6 +129,7 @@ select {
 
 .input-wrapper input {
   padding-left: 44px;
+  padding-right: 42px;
 }
 
 .form-field input:focus,
@@ -190,6 +191,39 @@ select {
   margin-left: 6px;
   color: var(--pumpkin);
   font-weight: 700;
+}
+
+.text-link-btn {
+  margin-top: 8px;
+  border: none;
+  background: transparent;
+  color: var(--pumpkin);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  padding: 0;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #6b7280;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.password-toggle-btn:hover {
+  background: #eef2f7;
+  color: #374151;
 }
 
 /* ALERT */

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../app/AuthContext";
 
@@ -8,8 +8,15 @@ export function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setName("");
+    setEmail("");
+    setPassword("");
+  }, []);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -19,9 +26,18 @@ export function RegisterPage() {
     setLoading(false);
     if (!result.ok) {
       setMessage(result.message);
+      setName("");
+      setEmail("");
+      setPassword("");
       return;
     }
-    navigate("/admin", { replace: true });
+    setName("");
+    setEmail("");
+    setPassword("");
+    navigate("/login", {
+      replace: true,
+      state: { message: "Compte créé. Connectez-vous avec vos identifiants." },
+    });
   };
 
   return (
@@ -44,7 +60,7 @@ export function RegisterPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="form-stack">
+        <form onSubmit={handleSubmit} className="form-stack" autoComplete="off">
           <div className="form-field">
             <label>Nom complet</label>
             <div className="input-wrapper">
@@ -56,6 +72,7 @@ export function RegisterPage() {
                 placeholder="Ex: Jean Dupont"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                autoComplete="off"
                 required
               />
             </div>
@@ -72,6 +89,7 @@ export function RegisterPage() {
                 placeholder="admin@stalla.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="off"
                 required
               />
             </div>
@@ -85,12 +103,33 @@ export function RegisterPage() {
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
               </svg>
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
                 required
               />
+              <button
+                type="button"
+                className="password-toggle-btn"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              >
+                {showPassword ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-5 0-9.27-3.11-11-8 1-2.87 2.87-5.1 5.14-6.43" />
+                    <path d="M1 1l22 22" />
+                    <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c5 0 9.27 3.11 11 8a11 11 0 0 1-4.24 5.06" />
+                    <path d="M14.12 14.12a3 3 0 0 1-4.24-4.24" />
+                  </svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
+              </button>
             </div>
           </div>
 

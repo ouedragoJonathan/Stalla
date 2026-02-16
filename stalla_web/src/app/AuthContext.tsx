@@ -37,7 +37,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       registerAdmin: async (name, email, password) => {
         const response = await registerAdmin({ name, email, password });
         if (!response.success) return { ok: false, message: response.message };
-        setUser(response.data.user);
         return { ok: true, message: response.message };
       },
       logout: () => {

@@ -18,9 +18,18 @@ export async function registerAdmin(payload: {
   email: string;
   password: string;
 }): Promise<ApiResponse<AuthPayload>> {
-  const response = await apiRequest<AuthPayload>("/auth/register-admin", "POST", payload);
-  if (response.success) {
-    saveSession(response.data.token, response.data.user);
-  }
-  return response;
+  return apiRequest<AuthPayload>("/auth/register-admin", "POST", payload);
+}
+
+export async function forgotPassword(payload: {
+  email: string;
+}): Promise<ApiResponse<null>> {
+  return apiRequest<null>("/auth/forgot-password", "POST", payload);
+}
+
+export async function resetPassword(payload: {
+  token: string;
+  new_password: string;
+}): Promise<ApiResponse<null>> {
+  return apiRequest<null>("/auth/reset-password", "POST", payload);
 }

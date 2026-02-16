@@ -4,6 +4,8 @@ import { RequireAdmin } from "./guards/RequireAdmin";
 import { AdminLayout } from "./components/AdminLayout";
 import { LoginPage } from "./features/auth/pages/LoginPage";
 import { RegisterPage } from "./features/auth/pages/RegisterPage";
+import { ForgotPasswordPage } from "./features/auth/pages/ForgotPasswordPage";
+import { ResetPasswordPage } from "./features/auth/pages/ResetPasswordPage";
 import { DashboardPage } from "./features/admin/pages/DashboardPage";
 import { StallsPage } from "./features/admin/pages/StallsPage";
 import { VendorsPage } from "./features/admin/pages/VendorsPage";
@@ -18,6 +20,8 @@ export function App() {
       <Route path="/" element={<Navigate to="/admin" replace />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       <Route element={<RequireAuth />}>
         <Route element={<RequireAdmin />}>
