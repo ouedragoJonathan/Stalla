@@ -1,144 +1,136 @@
 import jwt from "jsonwebtoken";
-import { Op } from "sequelize";
-import { User } from "../database.js";
+import { User, Vendor } from "../database.js";
 import { config } from "../config.js";
 import { sendResponse } from "../utils/response.js";
+import { sendAdminResetEmail } from "../services/emailService.js";
 
-// Utilitaire pour créer le token JWT
-const createToken = (user) =>
-  jwt.sign(
-    { id: user.id, role: user.role },
-    config.jwtSecret,
-    { expiresIn: config.jwtExpiresIn }
-  );
+function createToken(user) {
+  return jwt.sign({ id: user.id, role: user.role }, config.jwtSecret, {
+    expiresIn: config.jwtExpiresIn,
+  });
+}
 
-/**
- * LOGIN ADMINISTRATEUR (Email uniquement)
- */
-export const adminLogin = async (req, res) => {
+async function findUserForLogin(identifier) {
+  if (identifier.includes("@")) {
+    return User.findOne({
+      where: { email: identifier },
+      include: [{ model: Vendor, as: "vendorProfile", required: false }],
+    });
+  }
+
+  const byEmail = await User.findOne({
+    where: { email: identifier },
+    include: [{ model: Vendor, as: "vendorProfile", required: false }],
+  });
+  if (byEmail) return byEmail;
+
+  return User.findOne({
+    where: { role: "VENDOR" },
+    include: [{ model: Vendor, as: "vendorProfile", where: { phone: identifier }, required: true }],
+  });
+}
+
+export async function registerAdmin(req, res) {
   try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
       return sendResponse(res, {
         status: 400,
         success: false,
-        message: "Email et mot de passe requis",
-        errors: { fields: "email et password sont obligatoires" },
+        message: "Champs obligatoires manquants",
+        errors: { fields: "name, email, password requis" },
       });
     }
 
-    const user = await User.findOne({ where: { email, role: "ADMIN" } });
-
-    if (!user) {
+    const existing = await User.findOne({ where: { email } });
+    if (existing) {
       return sendResponse(res, {
-        status: 401,
+        status: 400,
         success: false,
-        message: "Identifiants invalides",
-        errors: { credentials: "Email ou mot de passe incorrect" },
+        message: "Email déjà utilisé",
+        errors: { email: "Un compte existe déjà avec cet email" },
       });
     }
 
-    // Note: Pour l'admin, on peut garder une vérification simple ou bcrypt
-    const isMatch = (password === "admin123") || await user.comparePassword(password);
-    
-    if (!isMatch) {
-      return sendResponse(res, {
-        status: 401,
-        success: false,
-        message: "Identifiants invalides",
-        errors: { credentials: "Email ou mot de passe incorrect" },
-      });
-    }
+    const admin = await User.create({
+      name,
+      email,
+      password,
+      role: "ADMIN",
+    });
 
-    const token = createToken(user);
+    const token = createToken(admin);
     return sendResponse(res, {
-      status: 200,
-      message: "Connexion administrateur réussie",
+      status: 201,
+      message: "Compte administrateur créé avec succès",
       data: {
         token,
-        user: { id: user.id, name: user.name, email: user.email, role: user.role },
+        user: { id: admin.id, role: admin.role, name: admin.name },
       },
     });
   } catch (err) {
     return sendResponse(res, {
       status: 500,
       success: false,
-      message: "Erreur serveur lors de la connexion",
+      message: "Erreur serveur lors de la création du compte admin",
       errors: { server: err.message },
     });
   }
-};
+}
 
-/**
- * LOGIN VENDEUR (Email OU Téléphone)
- */
-export const vendorLogin = async (req, res) => {
+export async function login(req, res) {
   try {
-    // On extrait toutes les clés possibles envoyées par le frontend
-    const { email, phone, identifier, password } = req.body;
-    
-    // On sélectionne la première valeur non nulle (résout ton problème de clé 'phone')
-    const loginValue = email || phone || identifier;
+    const { identifier, email, phone, password } = req.body;
+    const loginIdentifier = (identifier || email || phone || "").trim();
 
-    if (!loginValue || !password) {
+    if (!loginIdentifier || !password) {
       return sendResponse(res, {
         status: 400,
         success: false,
         message: "Identifiant et mot de passe requis",
-        errors: { fields: "L'identifiant (téléphone/email) et le mot de passe sont requis" },
+        errors: { fields: "identifier (ou email/phone) et password sont obligatoires" },
       });
     }
 
-    // Recherche l'utilisateur VENDOR dont l'email OU le téléphone correspond
-    const user = await User.findOne({ 
-      where: { 
-        role: "VENDOR",
-        [Op.or]: [
-          { email: loginValue },
-          { phone: loginValue }
-        ]
-      } 
-    });
+    const user = await findUserForLogin(loginIdentifier);
 
     if (!user) {
       return sendResponse(res, {
         status: 401,
         success: false,
         message: "Identifiants invalides",
-        errors: { credentials: "Compte introuvable ou identifiants incorrects" },
+        errors: { credentials: "Email ou mot de passe incorrect" },
       });
     }
 
-    // Vérification du mot de passe via le hook bcrypt du modèle
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return sendResponse(res, {
         status: 401,
         success: false,
         message: "Identifiants invalides",
-        errors: { credentials: "Mot de passe incorrect" },
+        errors: { credentials: "Email ou mot de passe incorrect" },
       });
     }
 
     const token = createToken(user);
-    
+    const name = user.role === "VENDOR" && user.vendorProfile ? user.vendorProfile.fullName : user.name;
+
     return sendResponse(res, {
       status: 200,
-      message: "Connexion vendeur réussie",
+      message: "Connexion réussie",
       data: {
         token,
-        user: { 
-          id: user.id, 
-          name: user.name, 
-          email: user.email, 
-          phone: user.phone, 
-          role: user.role 
+        user: {
+          id: user.id,
+          role: user.role,
+          name,
+          email: user.email || null,
+          phone: user.vendorProfile?.phone || null,
         },
       },
     });
   } catch (err) {
-    console.error("Erreur Login Vendeur:", err);
     return sendResponse(res, {
       status: 500,
       success: false,
@@ -146,4 +138,132 @@ export const vendorLogin = async (req, res) => {
       errors: { server: err.message },
     });
   }
-};
+}
+
+export async function forgotAdminPassword(req, res) {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return sendResponse(res, {
+        status: 400,
+        success: false,
+        message: "Email requis",
+        errors: { email: "email obligatoire" },
+      });
+    }
+
+    const admin = await User.findOne({ where: { email, role: "ADMIN" } });
+    if (!admin) {
+      return sendResponse(res, {
+        status: 404,
+        success: false,
+        message: "Aucun compte administrateur trouvé pour cet email.",
+        errors: { email: "admin introuvable" },
+      });
+    }
+
+    const token = jwt.sign(
+      { id: admin.id, role: "ADMIN", purpose: "admin_reset_password" },
+      config.jwtSecret,
+      { expiresIn: "30m" },
+    );
+    const webBaseUrl = process.env.WEB_BASE_URL || "http://localhost:5173";
+    const resetUrl = `${webBaseUrl}/reset-password?token=${encodeURIComponent(token)}`;
+    const sendResult = await sendAdminResetEmail({
+      to: admin.email,
+      adminName: admin.name,
+      resetUrl,
+    });
+
+    if (!sendResult.ok) {
+      const message = process.env.NODE_ENV === "production"
+        ? "Impossible d'envoyer l'email de réinitialisation"
+        : `Impossible d'envoyer l'email. Lien direct: ${resetUrl}`;
+      return sendResponse(res, {
+        status: 500,
+        success: false,
+        message,
+        errors: { email: sendResult.reason || "Erreur d'envoi email" },
+      });
+    }
+
+    return sendResponse(res, {
+      status: 200,
+      message: "Lien de réinitialisation envoyé par email.",
+      data: null,
+    });
+  } catch (err) {
+    return sendResponse(res, {
+      status: 500,
+      success: false,
+      message: "Erreur serveur lors de la demande de réinitialisation",
+      errors: { server: err.message },
+    });
+  }
+}
+
+export async function resetAdminPassword(req, res) {
+  try {
+    const { token, new_password } = req.body;
+    if (!token || !new_password) {
+      return sendResponse(res, {
+        status: 400,
+        success: false,
+        message: "token et new_password requis",
+        errors: { fields: "token et new_password sont obligatoires" },
+      });
+    }
+
+    let payload;
+    try {
+      payload = jwt.verify(token, config.jwtSecret);
+    } catch {
+      return sendResponse(res, {
+        status: 400,
+        success: false,
+        message: "Lien de réinitialisation invalide ou expiré",
+        errors: { token: "token invalide/expiré" },
+      });
+    }
+
+    if (
+      !payload ||
+      payload.role !== "ADMIN" ||
+      payload.purpose !== "admin_reset_password" ||
+      !payload.id
+    ) {
+      return sendResponse(res, {
+        status: 400,
+        success: false,
+        message: "Token invalide",
+        errors: { token: "token invalide" },
+      });
+    }
+
+    const admin = await User.findOne({ where: { id: payload.id, role: "ADMIN" } });
+    if (!admin) {
+      return sendResponse(res, {
+        status: 404,
+        success: false,
+        message: "Compte admin introuvable",
+        errors: { user: "admin non trouvé" },
+      });
+    }
+
+    admin.password = new_password;
+    await admin.save();
+
+    return sendResponse(res, {
+      status: 200,
+      message: "Mot de passe réinitialisé avec succès",
+      data: null,
+    });
+  } catch (err) {
+    return sendResponse(res, {
+      status: 500,
+      success: false,
+      message: "Erreur serveur lors de la réinitialisation",
+      errors: { server: err.message },
+    });
+  }
+}

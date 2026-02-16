@@ -1,4 +1,4 @@
-import { Payment, Stand, User, Debt } from "../database.js";
+import { Payment, Stand, User } from "../database.js";
 import { sendResponse } from "../utils/response.js";
 import { generatePaymentReceipt } from "../services/pdfService.js";
 
@@ -38,10 +38,6 @@ export const createPayment = async (req, res) => {
       monthPaid,
       method,
     });
-    await Debt.update(
-      { isPaid: true },
-      { where: { vendorId: vendor.id, standId: stand.id, month: monthPaid } }
-    );
     try {
       const { filePath } = await generatePaymentReceipt({
         payment: payment.toJSON(),
