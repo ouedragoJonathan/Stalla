@@ -1,31 +1,49 @@
-import { Stand, User, Debt } from "../database.js";
+import { Op } from "sequelize";
+import { Allocation, Stand } from "../database.js";
 
-/**
- * Crée les dettes mensuelles pour les stands occupés (à appeler périodiquement, ex. 1er du mois).
- * Pour ce projet, on ne lance pas de cron automatique ; à appeler manuellement ou via un scheduler externe.
- */
-export async function runDebtJob() {
-  const stands = await Stand.findAll({ where: { status: "occupied" } });
-  const now = new Date();
-  const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  for (const stand of stands) {
-    if (!stand.currentVendorId) continue;
-    const existing = await Debt.findOne({
-      where: { vendorId: stand.currentVendorId, standId: stand.id, month },
-    });
-    if (!existing) {
-      await Debt.create({
-        vendorId: stand.currentVendorId,
-        standId: stand.id,
-        month,
-        amount: stand.monthlyRent,
-        isPaid: false,
-      });
-    }
+let lastRunMonth = null;
+
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+async function syncStallStatuses() {
+  const today = todayIso();
+  const activeAllocations = await Allocation.findAll({
+    where: {
+      startDate: { [Op.lte]: today },
+      [Op.or]: [{ endDate: null }, { endDate: { [Op.gte]: today } }],
+    },
+    attributes: ["stallId"],
+  });
+
+  const occupiedIds = [...new Set(activeAllocations.map((a) => a.stallId))];
+
+  await Stand.update({ status: "AVAILABLE" }, { where: {} });
+  if (occupiedIds.length > 0) {
+    await Stand.update({ status: "OCCUPIED" }, { where: { id: occupiedIds } });
   }
 }
 
+export async function runDebtJob() {
+  // Le calcul de dette est dynamique (mois occupés * loyer - paiements).
+  // Ce job maintient les statuts et s'exécute le 1er de chaque mois.
+  await syncStallStatuses();
+  return { ranAt: new Date().toISOString() };
+}
+
 export function startDebtCronJob() {
-  // Optionnel : setInterval(() => runDebtJob().catch(console.error), 24 * 60 * 60 * 1000);
-  // Pour l'instant on n'exécute pas automatiquement.
+  setInterval(async () => {
+    const now = new Date();
+    const key = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
+
+    if (now.getUTCDate() !== 1 || lastRunMonth === key) return;
+
+    try {
+      await runDebtJob();
+      lastRunMonth = key;
+    } catch (err) {
+      console.error("Erreur job dettes mensuel:", err.message);
+    }
+  }, 60 * 60 * 1000);
 }

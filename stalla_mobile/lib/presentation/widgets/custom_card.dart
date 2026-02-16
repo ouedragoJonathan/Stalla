@@ -30,15 +30,13 @@ class CustomCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           border: gradient == null
               ? Border.all(
-                  // ignore: deprecated_member_use
-                  color: AppColors.sandyBrown.withOpacity(0.2),
+                  color: AppColors.sandyBrown.withValues(alpha: 0.2),
                   width: 1,
                 )
               : null,
           boxShadow: [
             BoxShadow(
-              // ignore: deprecated_member_use
-              color: AppColors.pumpkin.withOpacity(0.05),
+              color: AppColors.pumpkin.withValues(alpha: 0.05),
               blurRadius: 15,
               offset: const Offset(0, 4),
             ),

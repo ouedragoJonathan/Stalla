@@ -254,8 +254,7 @@ class _LoginScreenState extends State<LoginScreen> {
             color: isActive ? Colors.white : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
             boxShadow: isActive 
-              // ignore: deprecated_member_use
-              ? [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]
+              ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))]
               : [],
           ),
           alignment: Alignment.center,

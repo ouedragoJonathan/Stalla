@@ -50,6 +50,30 @@ class VendorProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<bool> resetPassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    final response = await _vendorRepository.resetPassword(
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+    );
+
+    _isLoading = false;
+    if (!response.success) {
+      _errorMessage = response.message;
+      notifyListeners();
+      return false;
+    }
+
+    notifyListeners();
+    return true;
+  }
+
   void clearData() {
     _profile = null;
     _debt = null;

@@ -22,8 +22,7 @@ class ErrorDisplay extends StatelessWidget {
             Icon(
               Icons.error_outline,
               size: 64,
-              // ignore: deprecated_member_use
-              color: AppColors.error.withOpacity(0.5),
+              color: AppColors.error.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(

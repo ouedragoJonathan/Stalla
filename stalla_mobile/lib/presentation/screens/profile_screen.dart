@@ -43,6 +43,115 @@ class ProfileScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _handleResetPassword(BuildContext context) async {
+    final currentController = TextEditingController();
+    final newController = TextEditingController();
+    final confirmController = TextEditingController();
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Réinitialiser le mot de passe'),
+        content: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 320),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: currentController,
+                  obscureText: true,
+                  decoration: const InputDecoration(labelText: 'Mot de passe actuel'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: newController,
+                  obscureText: true,
+                  decoration: const InputDecoration(labelText: 'Nouveau mot de passe'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: confirmController,
+                  obscureText: true,
+                  decoration: const InputDecoration(labelText: 'Confirmer le mot de passe'),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Annuler'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Valider'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != true) {
+      currentController.dispose();
+      newController.dispose();
+      confirmController.dispose();
+      return;
+    }
+
+    if (!context.mounted) return;
+
+    final currentPassword = currentController.text.trim();
+    final newPassword = newController.text.trim();
+    final confirmPassword = confirmController.text.trim();
+
+    currentController.dispose();
+    newController.dispose();
+    confirmController.dispose();
+
+    if (currentPassword.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tous les champs sont obligatoires'), backgroundColor: AppColors.error),
+      );
+      return;
+    }
+
+    if (newPassword != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('La confirmation ne correspond pas'), backgroundColor: AppColors.error),
+      );
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Le nouveau mot de passe doit contenir au moins 6 caractères'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    final ok = await context.read<VendorProvider>().resetPassword(
+          currentPassword: currentPassword,
+          newPassword: newPassword,
+        );
+
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          ok
+              ? 'Mot de passe mis à jour avec succès'
+              : (context.read<VendorProvider>().errorMessage ?? 'Erreur de réinitialisation'),
+        ),
+        backgroundColor: ok ? Colors.green : AppColors.error,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -80,8 +189,7 @@ class ProfileScreen extends StatelessWidget {
                           border: Border.all(color: AppColors.orangePantone, width: 3),
                           boxShadow: [
                             BoxShadow(
-                              // ignore: deprecated_member_use
-                              color: AppColors.orangePantone.withOpacity(0.2),
+                              color: AppColors.orangePantone.withValues(alpha: 0.2),
                               blurRadius: 20,
                               offset: const Offset(0, 10),
                             )
@@ -98,18 +206,6 @@ class ProfileScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      Positioned(
-                        bottom: 0,
-                        right: 5,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: Colors.green, 
-                            shape: BoxShape.circle
-                          ),
-                          child: const Icon(Icons.check, color: Colors.white, size: 16),
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -118,7 +214,7 @@ class ProfileScreen extends StatelessWidget {
                   user?.name ?? 'Utilisateur',
                   style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
-                const Text('Vendeur Marché Certifié', style: TextStyle(color: Colors.grey)),
+                const Text('Vendeur', style: TextStyle(color: Colors.grey)),
                 
                 const SizedBox(height: 35),
 
@@ -141,15 +237,38 @@ class ProfileScreen extends StatelessWidget {
                     Icons.storefront_outlined, 
                     'Stand', 
                     vendorProvider.profile?.stand != null 
-                        ? 'Stand N°${vendorProvider.profile?.stand}' 
+                        ? 'Stand ${vendorProvider.profile?.stand?.code ?? '-'}'
                         : 'Aucun stand assigné'
                   ),
-                  _buildProfileTile(Icons.verified_user_outlined, 'Rôle', 'Vendeur Professionnel'),
+                  _buildProfileTile(
+                    Icons.work_outline,
+                    'Activité',
+                    vendorProvider.profile?.businessType ?? 'Non renseignée',
+                  ),
+                  _buildProfileTile(
+                    Icons.support_agent,
+                    'Support',
+                    vendorProvider.profile?.supportPhone ?? AppConstants.supportPhone,
+                  ),
                 ]),
 
                 const SizedBox(height: 40),
 
                 // --- BOUTON DÉCONNEXION (DESIGN MODERNE) ---
+                ElevatedButton.icon(
+                  onPressed: () => _handleResetPassword(context),
+                  icon: const Icon(Icons.lock_reset_rounded),
+                  label: const Text('Réinitialiser le mot de passe'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.orangePantone,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 55),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                ),
+                const SizedBox(height: 14),
+
                 ElevatedButton.icon(
                   onPressed: () => _handleLogout(context),
                   icon: const Icon(Icons.logout_rounded),
@@ -196,8 +315,7 @@ class ProfileScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            // ignore: deprecated_member_use
-            color: Colors.black.withOpacity(0.03), 
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 15, 
             offset: const Offset(0, 5)
           ),
@@ -215,8 +333,7 @@ class ProfileScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              // ignore: deprecated_member_use
-              color: AppColors.orangePantone.withOpacity(0.1), 
+              color: AppColors.orangePantone.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10)
             ),
             child: Icon(icon, color: AppColors.orangePantone, size: 20),

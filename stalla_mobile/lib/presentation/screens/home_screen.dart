@@ -17,7 +17,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
   }
 
   Future<void> _loadData() async {
@@ -50,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             final profile = vendorProvider.profile;
             final debt = vendorProvider.debt;
-            final hasDebt = debt != null && debt.totalDue > 0;
+            final hasDebt = debt != null && debt.currentDebt > 0;
 
             return RefreshIndicator(
               onRefresh: _loadData,
@@ -61,30 +63,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // --- HEADER ---
                     _buildHeader(profile?.user.name),
                     const SizedBox(height: 25),
-
-                    // --- CARTE DU STAND (IDENTITY CARD) ---
-                    if (profile?.stand != null)
-                      _buildStandCard(profile!.stand!),
-
+                    if (profile?.stand != null) _buildStandCard(profile!.stand!),
                     const SizedBox(height: 20),
-
-                    // --- SECTION : RÉSUMÉ FINANCIER ---
                     const Text(
                       'Résumé financier',
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 15),
-
-                    // Grille de widgets
                     Row(
                       children: [
                         Expanded(
                           child: _buildStatCard(
-                            'Dette Totale',
-                            debt != null ? _formatCurrency(debt.totalDue) : '0 F',
+                            'Dette actuelle',
+                            debt != null ? _formatCurrency(debt.currentDebt) : '0 F',
                             hasDebt ? Colors.redAccent : Colors.green,
                             Icons.account_balance_wallet_rounded,
                           ),
@@ -100,14 +93,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-
-                    const SizedBox(height: 20),
-
-                    // --- CARTE ALERTE ÉCHÉANCE ---
-                    if (hasDebt)
-                      _buildDeadlineCard(debt),
-
-                    const SizedBox(height: 100), // Espace pour la barre de navigation
+                    const SizedBox(height: 15),
+                    if (debt != null)
+                      _buildSummaryCard(debt.totalPaid, debt.totalDue),
+                    const SizedBox(height: 100),
                   ],
                 ),
               ),
@@ -137,8 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         CircleAvatar(
           radius: 25,
-          // ignore: deprecated_member_use
-          backgroundColor: AppColors.orangePantone.withOpacity(0.1),
+          backgroundColor: AppColors.orangePantone.withValues(alpha: 0.1),
           child: const Icon(Icons.person_rounded, color: AppColors.orangePantone),
         ),
       ],
@@ -158,8 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            // ignore: deprecated_member_use
-            color: AppColors.orangePantone.withOpacity(0.3),
+            color: AppColors.orangePantone.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -171,18 +158,16 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('STAND ACTUEL', 
-                style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 1.2)),
-              // ignore: deprecated_member_use
-              Icon(Icons.qr_code_scanner_rounded, color: Colors.white.withOpacity(0.5)),
+              const Text('STAND ACTUEL',
+                  style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 1.2)),
+              Icon(Icons.qr_code_scanner_rounded, color: Colors.white.withValues(alpha: 0.5)),
             ],
           ),
           const SizedBox(height: 8),
-          Text(stand.code, 
-            style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.w900)),
+          Text(stand.code,
+              style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.w900)),
           const SizedBox(height: 4),
-          Text('Zone: ${stand.zone}', 
-            style: const TextStyle(color: Colors.white, fontSize: 16)),
+          Text('Zone: ${stand.zone}', style: const TextStyle(color: Colors.white, fontSize: 16)),
         ],
       ),
     );
@@ -195,8 +180,7 @@ class _HomeScreenState extends State<HomeScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          // ignore: deprecated_member_use
-          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
       child: Column(
@@ -204,8 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            // ignore: deprecated_member_use
-            decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
             child: Icon(icon, color: color, size: 20),
           ),
           const SizedBox(height: 12),
@@ -217,37 +200,19 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildDeadlineCard(dynamic debt) {
+  Widget _buildSummaryCard(int totalPaid, int totalDue) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        // ignore: deprecated_member_use
-        color: Colors.redAccent.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(24),
-        // ignore: deprecated_member_use
-        border: Border.all(color: Colors.redAccent.withOpacity(0.1)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Icon(Icons.timer_outlined, color: Colors.redAccent, size: 30),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Prochaine échéance', 
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.redAccent)),
-                Text(
-                  debt.unpaidMonths.isNotEmpty ? 'Mois de ${debt.unpaidMonths.first.month}' : 'À régulariser',
-                  style: TextStyle(color: Colors.grey[700], fontSize: 13),
-                ),
-              ],
-            ),
-          ),
-          Text(
-             debt.unpaidMonths.isNotEmpty ? _formatCurrency(debt.unpaidMonths.first.amount) : '',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-          ),
+          Text('Total payé: ${_formatCurrency(totalPaid)}', style: const TextStyle(fontWeight: FontWeight.w600)),
+          Text('Total dû: ${_formatCurrency(totalDue)}', style: const TextStyle(fontWeight: FontWeight.w600)),
         ],
       ),
     );
