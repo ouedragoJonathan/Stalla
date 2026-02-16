@@ -3,7 +3,8 @@ import { Op } from "sequelize";
 import { sequelize, User, Vendor, Stand, Allocation, Payment, Setting } from "../database.js";
 import { sendResponse } from "../utils/response.js";
 import { computeDebtForAllocation } from "../utils/debt.js";
-import { sendVendorWelcomeSms } from "../services/smsService.js";
+import { sendVendorWelcomeEmail } from "../services/emailService.js";
+import { generatePaymentReceipt } from "../services/pdfService.js";
 
 const periodRegex = /^\d{4}-\d{2}$/;
 
@@ -116,6 +117,52 @@ export async function createAdminStand(req, res) {
   }
 }
 
+export async function deleteAdminStand(req, res) {
+  try {
+    const { id } = req.params;
+    const stand = await Stand.findByPk(id);
+    if (!stand) {
+      return sendResponse(res, {
+        status: 404,
+        success: false,
+        message: "Stand introuvable",
+        errors: { stand: "Aucun stand avec cet id" },
+      });
+    }
+
+    if (stand.status === "OCCUPIED") {
+      return sendResponse(res, {
+        status: 400,
+        success: false,
+        message: "Impossible de supprimer un stand occupé",
+        errors: { stand: "Libérez d'abord ce stand" },
+      });
+    }
+
+    const activeAllocation = await Allocation.findOne({
+      where: { stallId: stand.id, endDate: null },
+    });
+    if (activeAllocation) {
+      return sendResponse(res, {
+        status: 400,
+        success: false,
+        message: "Impossible de supprimer ce stand",
+        errors: { stand: "Une allocation active existe encore" },
+      });
+    }
+
+    await stand.destroy();
+    return sendResponse(res, { status: 200, message: "Stand supprimé avec succès", data: null });
+  } catch (err) {
+    return sendResponse(res, {
+      status: 500,
+      success: false,
+      message: "Erreur lors de la suppression du stand",
+      errors: { server: err.message },
+    });
+  }
+}
+
 export async function listAdminVendors(req, res) {
   try {
     const vendors = await Vendor.findAll({
@@ -205,16 +252,17 @@ export async function createAdminVendor(req, res) {
 
     await tx.commit();
 
-    let smsStatus = null;
+    let emailStatus = null;
     try {
-      const sms = await sendVendorWelcomeSms({
-        to: phone,
+      const emailDelivery = await sendVendorWelcomeEmail({
+        to: user.email,
         fullName: vendor.fullName,
         password: generatedPassword,
+        phone: vendor.phone,
       });
-      smsStatus = sms;
-    } catch (smsErr) {
-      smsStatus = { ok: false, reason: smsErr.message };
+      emailStatus = emailDelivery;
+    } catch (emailErr) {
+      emailStatus = { ok: false, reason: emailErr.message };
     }
 
     return sendResponse(res, {
@@ -228,7 +276,7 @@ export async function createAdminVendor(req, res) {
         phone: vendor.phone,
         business_type: vendor.businessType,
         default_password: generatedPassword,
-        sms: smsStatus,
+        email_delivery: emailStatus,
       },
     });
   } catch (err) {
@@ -237,6 +285,53 @@ export async function createAdminVendor(req, res) {
       status: 500,
       success: false,
       message: "Erreur lors de la création du vendeur",
+      errors: { server: err.message },
+    });
+  }
+}
+
+export async function deleteAdminVendor(req, res) {
+  const tx = await sequelize.transaction();
+  try {
+    const { id } = req.params;
+
+    const vendor = await Vendor.findByPk(id, { transaction: tx });
+    if (!vendor) {
+      await tx.rollback();
+      return sendResponse(res, {
+        status: 404,
+        success: false,
+        message: "Vendeur introuvable",
+        errors: { vendor: "Aucun vendeur avec cet id" },
+      });
+    }
+
+    const hasAllocations = await Allocation.findOne({
+      where: { vendorId: vendor.id },
+      transaction: tx,
+    });
+    if (hasAllocations) {
+      await tx.rollback();
+      return sendResponse(res, {
+        status: 400,
+        success: false,
+        message: "Impossible de supprimer ce vendeur",
+        errors: { vendor: "Ce vendeur possède déjà des allocations/paiements" },
+      });
+    }
+
+    const userId = vendor.userId;
+    await vendor.destroy({ transaction: tx });
+    await User.destroy({ where: { id: userId }, transaction: tx });
+
+    await tx.commit();
+    return sendResponse(res, { status: 200, message: "Vendeur supprimé avec succès", data: null });
+  } catch (err) {
+    await tx.rollback();
+    return sendResponse(res, {
+      status: 500,
+      success: false,
+      message: "Erreur lors de la suppression du vendeur",
       errors: { server: err.message },
     });
   }
@@ -342,7 +437,12 @@ export async function createAdminPayment(req, res) {
       });
     }
 
-    const allocation = await Allocation.findByPk(allocation_id);
+    const allocation = await Allocation.findByPk(allocation_id, {
+      include: [
+        { model: Vendor, as: "vendor", include: [{ model: User, as: "user", attributes: ["email"] }] },
+        { model: Stand, as: "stall" },
+      ],
+    });
     if (!allocation) {
       return sendResponse(res, {
         status: 404,
@@ -359,6 +459,33 @@ export async function createAdminPayment(req, res) {
       period,
     });
 
+    let receiptPath = null;
+    let receiptUrl = null;
+    try {
+      const receipt = await generatePaymentReceipt({
+        payment: {
+          id: payment.id,
+          amount_paid: Number(payment.amountPaid),
+          period: payment.period,
+          payment_date: payment.paymentDate,
+        },
+        vendor: {
+          full_name: allocation.vendor?.fullName || "Vendeur",
+          email: allocation.vendor?.user?.email || null,
+          phone: allocation.vendor?.phone || null,
+        },
+        stand: {
+          code: allocation.stall?.code || "-",
+          zone: allocation.stall?.zone || "-",
+        },
+      });
+      receiptPath = receipt.filePath;
+      receiptUrl = `${req.protocol}://${req.get("host")}${receipt.filePath}`;
+      await payment.update({ receiptPath });
+    } catch (receiptErr) {
+      // Le reçu ne doit pas empêcher la création du paiement.
+    }
+
     return sendResponse(res, {
       status: 201,
       message: "Paiement enregistré avec succès",
@@ -368,6 +495,8 @@ export async function createAdminPayment(req, res) {
         amount_paid: Number(payment.amountPaid),
         payment_date: payment.paymentDate,
         period: payment.period,
+        receipt_path: receiptPath,
+        receipt_url: receiptUrl,
       },
     });
   } catch (err) {

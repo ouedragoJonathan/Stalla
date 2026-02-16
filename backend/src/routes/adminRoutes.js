@@ -4,6 +4,8 @@ import {
   createAdminStand,
   createAdminVendor,
   createAllocation,
+  deleteAdminStand,
+  deleteAdminVendor,
   getSupportSettings,
   listAdminStalls,
   listAdminVendors,
@@ -50,6 +52,7 @@ router.get("/stalls", listAdminStalls);
  *       201: { description: Stand créé }
  */
 router.post("/stalls", createAdminStand);
+router.delete("/stalls/:id", deleteAdminStand);
 
 /**
  * @openapi
@@ -86,6 +89,7 @@ router.get("/vendors", listAdminVendors);
  *       201: { description: Vendeur créé (mot de passe généré) }
  */
 router.post("/vendors", createAdminVendor);
+router.delete("/vendors/:id", deleteAdminVendor);
 
 /**
  * @openapi

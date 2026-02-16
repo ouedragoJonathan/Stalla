@@ -14,7 +14,7 @@ try {
       if (eq > 0) {
         const key = trimmed.slice(0, eq).trim();
         const value = trimmed.slice(eq + 1).trim();
-        if (key) process.env[key] = value;
+        if (key && process.env[key] == null) process.env[key] = value;
       }
     }
   }
