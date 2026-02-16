@@ -1,0 +1,47 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: stalla-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: stalla
+      MYSQL_USER: stalla
+      MYSQL_PASSWORD: stalla_pass
+    ports:
+      - "3307:3306"
+    volumes:
+      - stalla_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 180s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: stalla-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env
+    environment:
+      PORT: 4000
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: stalla
+      DB_USER: stalla
+      DB_PASSWORD: stalla_pass
+      WEB_BASE_URL: http://localhost:5173
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./backend/receipts:/app/receipts
+
+volumes:
+  stalla_mysql_data:
