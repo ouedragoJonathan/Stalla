@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { clearSession, getUser } from "../core/storage";
+import { clearSession, getToken, getUser } from "../core/storage";
 import type { AuthUser } from "../core/types";
 import { login, registerAdmin } from "../features/auth/authService";
 
@@ -17,11 +17,12 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(() => getUser());
+  const hasToken = !!getToken();
 
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
-      isAuthenticated: !!user,
+      isAuthenticated: !!user && hasToken,
       isAdmin: user?.role === "ADMIN",
       loginAdmin: async (identifier, password) => {
         const response = await login({ identifier, password });
@@ -44,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
       },
     }),
-    [user],
+    [user, hasToken],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
