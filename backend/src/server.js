@@ -23,6 +23,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/vendor", vendorRoutes);
+app.use("/api/v1/vendor", vendorRoutes);
 
 app.post("/api/admin/run-debt-job", authenticate, authorize("ADMIN"), async (req, res) => {
   try {

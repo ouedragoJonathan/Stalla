@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../../core/constants/app_constants.dart';
 import '../models/api_response.dart';
 import '../models/payment.dart';
 import '../services/api_client.dart';
@@ -8,7 +9,7 @@ class PaymentRepository {
 
   Future<ApiResponse<List<Payment>>> getPayments() async {
     try {
-      final response = await _apiClient.get('/vendor/payments');
+      final response = await _apiClient.get(AppConstants.vendorPaymentsEndpoint);
 
       return ApiResponse<List<Payment>>.fromJson(
         response.data,

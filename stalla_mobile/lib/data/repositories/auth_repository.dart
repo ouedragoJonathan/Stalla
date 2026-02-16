@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../../core/constants/app_constants.dart';
 import '../models/api_response.dart';
 import '../models/user.dart';
 import '../services/api_client.dart';
@@ -14,7 +15,7 @@ class AuthRepository {
   }) async {
     try {
       final response = await _apiClient.post(
-        '/auth/login',
+        AppConstants.authLoginEndpoint,
         data: {
           'identifier': identifier,
           'password': password,

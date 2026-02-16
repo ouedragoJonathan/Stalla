@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../../core/constants/app_constants.dart';
 import '../models/api_response.dart';
 import '../models/vendor_profile.dart';
 import '../models/debt.dart';
@@ -23,7 +24,7 @@ class VendorRepository {
     final user = User.fromJson(userData);
 
     try {
-      final profileResponse = await _apiClient.get('/vendor/profile');
+      final profileResponse = await _apiClient.get(AppConstants.vendorProfileEndpoint);
       final profileApi = ApiResponse<Map<String, dynamic>>.fromJson(
         profileResponse.data,
         (data) => data as Map<String, dynamic>,
@@ -36,7 +37,7 @@ class VendorRepository {
         supportPhone = profileApi.data!['support_phone'] as String?;
       }
 
-      final response = await _apiClient.get('/vendor/my-stall');
+      final response = await _apiClient.get(AppConstants.vendorMyStallEndpoint);
       final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(
         response.data,
         (data) => data as Map<String, dynamic>,
@@ -83,7 +84,7 @@ class VendorRepository {
 
   Future<ApiResponse<Debt>> getDebts() async {
     try {
-      final response = await _apiClient.get('/vendor/balance');
+      final response = await _apiClient.get(AppConstants.vendorBalanceEndpoint);
       return ApiResponse<Debt>.fromJson(
         response.data,
         (data) => Debt.fromJson(data as Map<String, dynamic>),
@@ -102,7 +103,7 @@ class VendorRepository {
   }) async {
     try {
       final response = await _apiClient.post(
-        '/vendor/reset-password',
+        AppConstants.vendorResetPasswordEndpoint,
         data: {
           'current_password': currentPassword,
           'new_password': newPassword,
