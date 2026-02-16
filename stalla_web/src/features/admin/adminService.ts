@@ -21,6 +21,10 @@ export async function createStall(payload: {
   return apiRequest<Stand>("/admin/stalls", "POST", payload);
 }
 
+export async function deleteStall(stallId: number): Promise<ApiResponse<null>> {
+  return apiRequest<null>(`/admin/stalls/${stallId}`, "DELETE");
+}
+
 export async function getVendors(): Promise<ApiResponse<Vendor[]>> {
   return apiRequest<Vendor[]>("/admin/vendors");
 }
@@ -32,6 +36,10 @@ export async function createVendor(payload: {
   business_type: string;
 }): Promise<ApiResponse<Vendor>> {
   return apiRequest<Vendor>("/admin/vendors", "POST", payload);
+}
+
+export async function deleteVendor(vendorId: number): Promise<ApiResponse<null>> {
+  return apiRequest<null>(`/admin/vendors/${vendorId}`, "DELETE");
 }
 
 export async function createAllocation(payload: {

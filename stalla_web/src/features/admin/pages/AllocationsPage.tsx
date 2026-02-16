@@ -66,75 +66,80 @@ export function AllocationsPage() {
   };
 
   return (
-    <section className="page-card">
-      <div className="page-header">
-        <div>
-          <h1>Allocations</h1>
-          <p className="helper-text">Attribuer un vendeur à un stand.</p>
-        </div>
-      </div>
-
+    <section className="admin-page-space">
       {message && (
         <div className={`alert ${message.includes("succès") ? "success" : ""}`}>{message}</div>
       )}
 
-      {loading ? (
-        <p className="helper-text">Chargement...</p>
-      ) : (
-        <form className="form-stack" onSubmit={handleSubmit}>
-          <div className="form-field">
-            <label>Vendeur</label>
-            <select value={vendorId} onChange={(event) => setVendorId(event.target.value)} required>
-              <option value="">Sélectionner</option>
-              {vendors.map((vendor) => (
-                <option key={vendor.id} value={vendor.id}>
-                  {vendor.full_name} ({vendor.phone})
-                </option>
-              ))}
-            </select>
+      <div className="admin-split-grid">
+        <article className="panel-card form-panel">
+          <div className="panel-title">
+            <h3>Nouvelle Allocation</h3>
+            <p>Attribuer un stand à un vendeur.</p>
           </div>
-          <div className="form-field">
-            <label>Stand disponible</label>
-            <select value={stallId} onChange={(event) => setStallId(event.target.value)} required>
-              <option value="">Sélectionner</option>
-              {availableStalls.map((stall) => (
-                <option key={stall.id} value={stall.id}>
-                  {stall.code} - {stall.zone}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="form-field">
-            <label>Date de début</label>
-            <input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} required />
-          </div>
-          <button className="btn-primary" type="submit" disabled={saving}>
-            {saving ? "Attribution..." : "Créer l'allocation"}
-          </button>
-        </form>
-      )}
+          {loading ? (
+            <p className="helper-text">Chargement...</p>
+          ) : (
+            <form className="form-stack" onSubmit={handleSubmit}>
+              <div className="form-field">
+                <label>Vendeur</label>
+                <select value={vendorId} onChange={(event) => setVendorId(event.target.value)} required>
+                  <option value="">Sélectionner</option>
+                  {vendors.map((vendor) => (
+                    <option key={vendor.id} value={vendor.id}>
+                      {vendor.full_name} ({vendor.phone})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-field">
+                <label>Stand disponible</label>
+                <select value={stallId} onChange={(event) => setStallId(event.target.value)} required>
+                  <option value="">Sélectionner</option>
+                  {availableStalls.map((stall) => (
+                    <option key={stall.id} value={stall.id}>
+                      {stall.code} - {stall.zone}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-field">
+                <label>Date de début</label>
+                <input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} required />
+              </div>
+              <button className="btn-primary accent" type="submit" disabled={saving}>
+                {saving ? "Attribution..." : "Créer l'allocation"}
+              </button>
+            </form>
+          )}
+        </article>
 
-      <div style={{ marginTop: 24 }}>
-        <table width="100%">
-          <thead>
-            <tr>
-              <th align="left">Stand</th>
-              <th align="left">Statut</th>
-              <th align="left">Vendeur actif</th>
-              <th align="left">Début</th>
-            </tr>
-          </thead>
-          <tbody>
-            {stalls.map((stall) => (
-              <tr key={stall.id}>
-                <td>{stall.code}</td>
-                <td>{stall.status}</td>
-                <td>{stall.active_allocation?.vendor_name ?? "-"}</td>
-                <td>{stall.active_allocation?.start_date ?? "-"}</td>
+        <article className="panel-card table-panel">
+          <div className="panel-title row">
+            <h3>Stands & attributions</h3>
+            <span className="panel-pill">{availableStalls.length} disponibles</span>
+          </div>
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th align="left">Stand</th>
+                <th align="left">Statut</th>
+                <th align="left">Vendeur actif</th>
+                <th align="left">Début</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {stalls.map((stall) => (
+                <tr key={stall.id}>
+                  <td>{stall.code}</td>
+                  <td>{stall.status}</td>
+                  <td>{stall.active_allocation?.vendor_name ?? "-"}</td>
+                  <td>{stall.active_allocation?.start_date ?? "-"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </article>
       </div>
     </section>
   );

@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
+import path from "path";
 import { config } from "./config.js";
 import { initDatabase } from "./database.js";
 import { swaggerSpec } from "./swagger.js";
@@ -15,6 +16,7 @@ const app = express();
 
 app.use(cors({ origin: true }));
 app.use(express.json());
+app.use("/receipts", express.static(path.join(process.cwd(), "receipts")));
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 

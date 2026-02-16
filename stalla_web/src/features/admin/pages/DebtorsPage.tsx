@@ -23,44 +23,43 @@ export function DebtorsPage() {
   }, []);
 
   return (
-    <section className="page-card">
-      <div className="page-header">
-        <div>
-          <h1>Débiteurs</h1>
-          <p className="helper-text">Suivi des retards et impayés.</p>
-        </div>
-      </div>
-
+    <section className="admin-page-space">
       {message && <div className="alert">{message}</div>}
 
-      {loading ? (
-        <p className="helper-text">Chargement...</p>
-      ) : (
-        <table width="100%">
-          <thead>
-            <tr>
-              <th align="left">Vendeur</th>
-              <th align="left">Téléphone</th>
-              <th align="left">Activité</th>
-              <th align="left">Total dû</th>
-              <th align="left">Payé</th>
-              <th align="left">Dette</th>
-            </tr>
-          </thead>
-          <tbody>
-            {debtors.map((debtor) => (
-              <tr key={debtor.vendor_id}>
-                <td>{debtor.full_name}</td>
-                <td>{debtor.phone}</td>
-                <td>{debtor.business_type}</td>
-                <td>{debtor.total_due}</td>
-                <td>{debtor.total_paid}</td>
-                <td>{debtor.current_debt}</td>
+      <article className="panel-card table-panel">
+        <div className="panel-title row">
+          <h3>Liste des débiteurs</h3>
+          <span className="panel-pill">{debtors.length} en retard</span>
+        </div>
+        {loading ? (
+          <p className="helper-text">Chargement...</p>
+        ) : (
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th align="left">Vendeur</th>
+                <th align="left">Téléphone</th>
+                <th align="left">Activité</th>
+                <th align="left">Total dû</th>
+                <th align="left">Payé</th>
+                <th align="left">Dette</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            </thead>
+            <tbody>
+              {debtors.map((debtor) => (
+                <tr key={debtor.vendor_id}>
+                  <td>{debtor.full_name}</td>
+                  <td>{debtor.phone}</td>
+                  <td>{debtor.business_type}</td>
+                  <td>{debtor.total_due}</td>
+                  <td>{debtor.total_paid}</td>
+                  <td>{debtor.current_debt}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </article>
     </section>
   );
 }

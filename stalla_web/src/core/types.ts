@@ -1,3 +1,5 @@
+import type { Key, ReactNode } from "react";
+
 export type Role = "ADMIN" | "VENDOR";
 
 export interface ApiSuccess<T> {
@@ -50,7 +52,7 @@ export interface Vendor {
   phone: string;
   business_type: string;
   default_password?: string;
-  sms?: { ok: boolean; sid?: string; reason?: string } | null;
+  email_delivery?: { ok: boolean; messageId?: string; reason?: string } | null;
 }
 
 export interface Allocation {
@@ -67,9 +69,13 @@ export interface Payment {
   amount_paid: number;
   payment_date: string;
   period: string;
+  receipt_path?: string | null;
+  receipt_url?: string | null;
 }
 
 export interface Debtor {
+  name: ReactNode;
+  id: Key | null | undefined;
   vendor_id: number;
   email: string | null;
   full_name: string;

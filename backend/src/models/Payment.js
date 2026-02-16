@@ -19,6 +19,7 @@ export function initPayment(sequelize) {
         field: "payment_date",
       },
       period: { type: DataTypes.STRING(7), allowNull: false },
+      receiptPath: { type: DataTypes.STRING(255), allowNull: true, field: "receipt_path" },
     },
     { tableName: "payments", timestamps: true }
   );

@@ -44,36 +44,35 @@ export function SupportSettingsPage() {
   };
 
   return (
-    <section className="page-card">
-      <div className="page-header">
-        <div>
-          <h1>Support client</h1>
-          <p className="helper-text">Ce numéro s'affiche dans l'app mobile pour contacter l'admin.</p>
-        </div>
-      </div>
-
+    <section className="admin-page-space">
       {message && (
         <div className={`alert ${message.includes("mis à jour") ? "success" : ""}`}>{message}</div>
       )}
 
-      {loading ? (
-        <p className="helper-text">Chargement...</p>
-      ) : (
-        <form className="form-stack" onSubmit={handleSubmit}>
-          <div className="form-field">
-            <label>Numéro support</label>
-            <input
-              value={supportPhone}
-              onChange={(event) => setSupportPhone(event.target.value)}
-              placeholder="Ex: +243xxxxxxxxx"
-              required
-            />
-          </div>
-          <button className="btn-primary" type="submit" disabled={saving}>
-            {saving ? "Enregistrement..." : "Enregistrer"}
-          </button>
-        </form>
-      )}
+      <article className="panel-card form-panel support-panel">
+        <div className="panel-title">
+          <h3>Support client</h3>
+          <p>Ce numéro s'affiche dans l'app mobile pour contacter l'admin.</p>
+        </div>
+        {loading ? (
+          <p className="helper-text">Chargement...</p>
+        ) : (
+          <form className="form-stack" onSubmit={handleSubmit}>
+            <div className="form-field">
+              <label>Numéro support</label>
+              <input
+                value={supportPhone}
+                onChange={(event) => setSupportPhone(event.target.value)}
+                placeholder="Ex: +243xxxxxxxxx"
+                required
+              />
+            </div>
+            <button className="btn-primary accent" type="submit" disabled={saving}>
+              {saving ? "Enregistrement..." : "Enregistrer"}
+            </button>
+          </form>
+        )}
+      </article>
     </section>
   );
 }
