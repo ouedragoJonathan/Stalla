@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import { User, Vendor } from "../database.js";
 import { config } from "../config.js";
 import { sendResponse } from "../utils/response.js";
+import { sendAdminResetEmail } from "../services/emailService.js";
 
 function createToken(user) {
   return jwt.sign({ id: user.id, role: user.role }, config.jwtSecret, {
@@ -134,6 +135,134 @@ export async function login(req, res) {
       status: 500,
       success: false,
       message: "Erreur serveur lors de la connexion",
+      errors: { server: err.message },
+    });
+  }
+}
+
+export async function forgotAdminPassword(req, res) {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return sendResponse(res, {
+        status: 400,
+        success: false,
+        message: "Email requis",
+        errors: { email: "email obligatoire" },
+      });
+    }
+
+    const admin = await User.findOne({ where: { email, role: "ADMIN" } });
+    if (!admin) {
+      return sendResponse(res, {
+        status: 404,
+        success: false,
+        message: "Aucun compte administrateur trouvé pour cet email.",
+        errors: { email: "admin introuvable" },
+      });
+    }
+
+    const token = jwt.sign(
+      { id: admin.id, role: "ADMIN", purpose: "admin_reset_password" },
+      config.jwtSecret,
+      { expiresIn: "30m" },
+    );
+    const webBaseUrl = process.env.WEB_BASE_URL || "http://localhost:5173";
+    const resetUrl = `${webBaseUrl}/reset-password?token=${encodeURIComponent(token)}`;
+    const sendResult = await sendAdminResetEmail({
+      to: admin.email,
+      adminName: admin.name,
+      resetUrl,
+    });
+
+    if (!sendResult.ok) {
+      const message = process.env.NODE_ENV === "production"
+        ? "Impossible d'envoyer l'email de réinitialisation"
+        : `Impossible d'envoyer l'email. Lien direct: ${resetUrl}`;
+      return sendResponse(res, {
+        status: 500,
+        success: false,
+        message,
+        errors: { email: sendResult.reason || "Erreur d'envoi email" },
+      });
+    }
+
+    return sendResponse(res, {
+      status: 200,
+      message: "Lien de réinitialisation envoyé par email.",
+      data: null,
+    });
+  } catch (err) {
+    return sendResponse(res, {
+      status: 500,
+      success: false,
+      message: "Erreur serveur lors de la demande de réinitialisation",
+      errors: { server: err.message },
+    });
+  }
+}
+
+export async function resetAdminPassword(req, res) {
+  try {
+    const { token, new_password } = req.body;
+    if (!token || !new_password) {
+      return sendResponse(res, {
+        status: 400,
+        success: false,
+        message: "token et new_password requis",
+        errors: { fields: "token et new_password sont obligatoires" },
+      });
+    }
+
+    let payload;
+    try {
+      payload = jwt.verify(token, config.jwtSecret);
+    } catch {
+      return sendResponse(res, {
+        status: 400,
+        success: false,
+        message: "Lien de réinitialisation invalide ou expiré",
+        errors: { token: "token invalide/expiré" },
+      });
+    }
+
+    if (
+      !payload ||
+      payload.role !== "ADMIN" ||
+      payload.purpose !== "admin_reset_password" ||
+      !payload.id
+    ) {
+      return sendResponse(res, {
+        status: 400,
+        success: false,
+        message: "Token invalide",
+        errors: { token: "token invalide" },
+      });
+    }
+
+    const admin = await User.findOne({ where: { id: payload.id, role: "ADMIN" } });
+    if (!admin) {
+      return sendResponse(res, {
+        status: 404,
+        success: false,
+        message: "Compte admin introuvable",
+        errors: { user: "admin non trouvé" },
+      });
+    }
+
+    admin.password = new_password;
+    await admin.save();
+
+    return sendResponse(res, {
+      status: 200,
+      message: "Mot de passe réinitialisé avec succès",
+      data: null,
+    });
+  } catch (err) {
+    return sendResponse(res, {
+      status: 500,
+      success: false,
+      message: "Erreur serveur lors de la réinitialisation",
       errors: { server: err.message },
     });
   }

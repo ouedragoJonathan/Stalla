@@ -2,7 +2,7 @@ function getBrevoApiKey() {
   return process.env.BREVO_API_KEY || null;
 }
 
-export async function sendVendorWelcomeEmail({ to, fullName, password, phone }) {
+async function sendBrevoEmail({ to, toName, subject, htmlContent }) {
   const apiKey = getBrevoApiKey();
   const senderEmail = process.env.BREVO_SENDER_EMAIL;
   const senderName = process.env.BREVO_SENDER_NAME || "STALLA";
@@ -17,17 +17,9 @@ export async function sendVendorWelcomeEmail({ to, fullName, password, phone }) 
 
   const payload = {
     sender: { name: senderName, email: senderEmail },
-    to: [{ email: to, name: fullName || "Vendeur" }],
-    subject: "Vos identifiants STALLA",
-    htmlContent: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #1f2937;">
-        <h2 style="margin-bottom: 8px;">Bienvenue sur STALLA</h2>
-        <p>Bonjour ${fullName || ""}, votre compte vendeur est créé.</p>
-        <p><strong>Email:</strong> ${to}</p>
-        <p><strong>Téléphone:</strong> ${phone || "-"}</p>
-        <p><strong>Mot de passe:</strong> ${password}</p>
-      </div>
-    `,
+    to: [{ email: to, name: toName || "Utilisateur" }],
+    subject,
+    htmlContent,
   };
 
   try {
@@ -51,4 +43,38 @@ export async function sendVendorWelcomeEmail({ to, fullName, password, phone }) 
   } catch (err) {
     return { ok: false, reason: err.message };
   }
+}
+
+export async function sendVendorWelcomeEmail({ to, fullName, password, phone }) {
+  return sendBrevoEmail({
+    to,
+    toName: fullName || "Vendeur",
+    subject: "Vos identifiants STALLA",
+    htmlContent: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #1f2937;">
+        <h2 style="margin-bottom: 8px;">Bienvenue sur STALLA</h2>
+        <p>Bonjour ${fullName || ""}, votre compte vendeur est créé.</p>
+        <p><strong>Email:</strong> ${to}</p>
+        <p><strong>Téléphone:</strong> ${phone || "-"}</p>
+        <p><strong>Mot de passe:</strong> ${password}</p>
+      </div>
+    `,
+  });
+}
+
+export async function sendAdminResetEmail({ to, adminName, resetUrl }) {
+  return sendBrevoEmail({
+    to,
+    toName: adminName || "Administrateur",
+    subject: "Réinitialisation du mot de passe STALLA",
+    htmlContent: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #1f2937;">
+        <h2 style="margin-bottom: 8px;">Mot de passe oublié</h2>
+        <p>Bonjour ${adminName || ""},</p>
+        <p>Cliquez sur ce lien pour définir un nouveau mot de passe:</p>
+        <p><a href="${resetUrl}" target="_blank" rel="noopener noreferrer">${resetUrl}</a></p>
+        <p>Ce lien expire dans 30 minutes.</p>
+      </div>
+    `,
+  });
 }

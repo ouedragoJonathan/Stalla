@@ -1,5 +1,10 @@
 import express from "express";
-import { login, registerAdmin } from "../controllers/authController.js";
+import {
+  forgotAdminPassword,
+  login,
+  registerAdmin,
+  resetAdminPassword,
+} from "../controllers/authController.js";
 
 const router = express.Router();
 
@@ -57,5 +62,7 @@ router.post("/register-admin", registerAdmin);
  *         description: Identifiants invalides
  */
 router.post("/login", login);
+router.post("/forgot-password", forgotAdminPassword);
+router.post("/reset-password", resetAdminPassword);
 
 export default router;
