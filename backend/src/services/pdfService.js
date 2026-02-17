@@ -3,7 +3,11 @@ import fs from "fs";
 import { execFileSync } from "child_process";
 
 const receiptsDir = path.join(process.cwd(), "receipts");
-const logoPath = path.resolve(process.cwd(), "..", "stalla_web", "public", "logo.png");
+const logoPath = resolveFirstExistingPath([
+  path.join(process.cwd(), "assets", "logo.png"),
+  path.join(process.cwd(), "src", "assets", "logo.png"),
+  path.resolve(process.cwd(), "..", "stalla_web", "public", "logo.png"),
+]);
 
 /**
  * Génère un reçu de paiement en PDF (sans dépendance externe).
@@ -17,9 +21,7 @@ export async function generatePaymentReceipt({ payment, vendor, stand }) {
   const filename = `receipt_${payment.id}_${Date.now()}.pdf`;
   const filePath = path.join(receiptsDir, filename);
   const amountRaw = payment.amount_paid ?? payment.amount ?? payment.amountPaid ?? "-";
-  const amount = Number.isFinite(Number(amountRaw))
-    ? `${Number(amountRaw).toLocaleString("fr-FR")} CFA`
-    : String(amountRaw);
+  const amount = formatAmount(amountRaw);
   const period = payment.period ?? payment.monthPaid ?? "-";
   const paidAt = payment.payment_date ?? payment.paymentDate ?? new Date().toISOString().slice(0, 10);
 
@@ -38,63 +40,85 @@ export async function generatePaymentReceipt({ payment, vendor, stand }) {
   try {
     const args = [
       "-size", "1240x1754", "xc:white",
-      "-fill", "#FFF7ED", "-draw", "rectangle 0,0 1240,260",
-      "-fill", "#F97316", "-draw", "rectangle 0,210 1240,260",
-      "-fill", "#FFFFFF", "-stroke", "#E5E7EB", "-strokewidth", "2",
-      "-draw", "roundrectangle 60,300 1180,1650 24,24",
-      "-fill", "#F9FAFB", "-stroke", "#E5E7EB", "-strokewidth", "1",
-      "-draw", "roundrectangle 90,730 1150,920 16,16",
-      "-fill", "#FFF7ED", "-stroke", "#FDBA74", "-strokewidth", "1",
-      "-draw", "roundrectangle 90,980 1150,1250 16,16",
-      "-fill", "#F9FAFB", "-stroke", "#E5E7EB", "-strokewidth", "1",
-      "-draw", "roundrectangle 90,1310 1150,1560 16,16",
+      "-stroke", "#B7791F", "-strokewidth", "4", "-draw", "line 70,300 1170,300",
+      "-stroke", "#B7791F", "-strokewidth", "4", "-draw", "line 70,610 1170,610",
+      "-stroke", "#B7791F", "-strokewidth", "2", "-fill", "none", "-draw", "rectangle 70,690 1170,1490",
+      "-stroke", "#B7791F", "-strokewidth", "1", "-draw", "line 70,760 1170,760",
+      "-stroke", "#B7791F", "-strokewidth", "1", "-draw", "line 690,690 690,1490",
+      "-stroke", "#B7791F", "-strokewidth", "1", "-draw", "line 860,690 860,1490",
+      "-stroke", "#B7791F", "-strokewidth", "1", "-draw", "line 1030,690 1030,1490",
+      "-stroke", "#B7791F", "-strokewidth", "1",
+      "-draw", "line 70,830 1170,830",
+      "-draw", "line 70,900 1170,900",
+      "-draw", "line 70,970 1170,970",
+      "-draw", "line 70,1040 1170,1040",
+      "-draw", "line 70,1110 1170,1110",
+      "-draw", "line 70,1180 1170,1180",
+      "-draw", "line 70,1250 1170,1250",
+      "-draw", "line 70,1320 1170,1320",
+      "-draw", "line 70,1390 1170,1390",
+      "-fill", "#A46F09", "-stroke", "#A46F09", "-strokewidth", "1", "-draw", "rectangle 70,1430 1170,1490",
     ];
 
-    if (fs.existsSync(logoPath)) {
-      args.push("(", logoPath, "-resize", "170x170", ")", "-gravity", "NorthWest", "-geometry", "+85+35", "-composite");
+    if (logoPath && fs.existsSync(logoPath)) {
+      args.push("(", logoPath, "-resize", "130x130", ")", "-gravity", "NorthWest", "-geometry", "+70+70", "-composite");
     }
 
     args.push(
-      "-font", "DejaVu-Sans-Bold", "-pointsize", "54", "-fill", "#111827", "-gravity", "NorthWest",
-      "-annotate", "+290+112", "Recu de Paiement",
-      "-font", "DejaVu-Sans", "-pointsize", "26", "-fill", "#4B5563",
-      "-annotate", "+292+164", "STALLA - Gestion des Stands",
-      "-font", "DejaVu-Sans-Bold", "-pointsize", "28", "-fill", "#FFFFFF",
-      "-annotate", "+92+246", `No: ${text.receiptNo}`,
-      "-annotate", "+900+246", `Date: ${text.paidAt}`,
+      "-font", "DejaVu-Sans-Bold", "-pointsize", "72", "-fill", "#A46F09", "-gravity", "NorthWest",
+      "-annotate", "+255+124", "PAYMENT",
+      "-annotate", "+255+205", "RECEIPT",
 
-      "-font", "DejaVu-Sans-Bold", "-pointsize", "32", "-fill", "#111827",
-      "-annotate", "+95+385", "Informations Vendeur",
-      "-font", "DejaVu-Sans", "-pointsize", "27", "-fill", "#1F2937",
-      "-annotate", "+95+450", `Nom: ${text.vendorName}`,
-      "-annotate", "+95+510", `Email: ${text.vendorEmail}`,
-      "-annotate", "+95+570", `Telephone: ${text.vendorPhone}`,
-      "-annotate", "+95+630", `Stand: ${text.standCode}  |  Zone: ${text.standZone}`,
+      "-font", "DejaVu-Sans", "-pointsize", "30", "-fill", "#7C5A24",
+      "-annotate", "+800+140", "Date:",
+      "-annotate", "+800+198", "Receipt No:",
+      "-stroke", "#B7791F", "-strokewidth", "1.3", "-draw", "line 970,132 1140,132",
+      "-draw", "line 970,190 1140,190",
+      "-font", "DejaVu-Sans-Bold", "-pointsize", "24", "-fill", "#7C5A24",
+      "-annotate", "+975+126", `${text.paidAt}`,
+      "-annotate", "+975+184", `${text.receiptNo}`,
 
-      "-font", "DejaVu-Sans-Bold", "-pointsize", "30", "-fill", "#111827",
-      "-annotate", "+95+790", "Ligne de Paiement",
-      "-font", "DejaVu-Sans-Bold", "-pointsize", "24", "-fill", "#6B7280",
-      "-annotate", "+95+850", "Description",
-      "-annotate", "+700+850", "Periode",
-      "-annotate", "+980+850", "Montant",
-      "-fill", "#E5E7EB", "-draw", "line 95,870 1145,870",
-      "-font", "DejaVu-Sans", "-pointsize", "27", "-fill", "#111827",
-      "-annotate", "+95+905", "Paiement location stand",
-      "-annotate", "+700+905", `${text.period}`,
-      "-font", "DejaVu-Sans-Bold", "-pointsize", "29", "-fill", "#111827",
-      "-annotate", "+965+905", `${text.amount}`,
+      "-font", "DejaVu-Sans-Bold", "-pointsize", "50", "-fill", "#A46F09",
+      "-annotate", "+70+385", "Received From:",
+      "-font", "DejaVu-Sans", "-pointsize", "33", "-fill", "#1F2937",
+      "-annotate", "+70+450", `Name: ${text.vendorName}`,
+      "-annotate", "+70+503", `Phone: ${text.vendorPhone}`,
+      "-annotate", "+70+556", `Email: ${text.vendorEmail}`,
 
-      "-font", "DejaVu-Sans-Bold", "-pointsize", "30", "-fill", "#111827",
-      "-annotate", "+95+1375", "Resume",
-      "-font", "DejaVu-Sans", "-pointsize", "27", "-fill", "#374151",
-      "-annotate", "+95+1440", "Mode: Encaissement STALLA",
-      "-annotate", "+95+1495", "Statut: Paiement enregistre",
-      "-font", "DejaVu-Sans-Bold", "-pointsize", "38", "-fill", "#EA580C",
-      "-annotate", "+790+1498", `Total: ${text.amount}`,
+      "-font", "DejaVu-Sans-Bold", "-pointsize", "50", "-fill", "#A46F09",
+      "-annotate", "+690+385", "Payment For:",
+      "-font", "DejaVu-Sans", "-pointsize", "33", "-fill", "#1F2937",
+      "-annotate", "+690+450", `Stand ${text.standCode} (Zone ${text.standZone})`,
+      "-annotate", "+690+503", `Period: ${text.period}`,
+      "-annotate", "+690+556", `Amount Paid: ${text.amount}`,
 
-      "-font", "DejaVu-Sans", "-pointsize", "22", "-fill", "#6B7280",
-      "-annotate", "+95+1618", "Merci pour votre paiement.",
-      "-annotate", "+95+1650", "Document genere automatiquement par STALLA.",
+      "-font", "DejaVu-Sans-Bold", "-pointsize", "31", "-fill", "#7C5A24",
+      "-annotate", "+90+738", "Description",
+      "-annotate", "+720+738", "Quantity",
+      "-annotate", "+895+738", "Unit Price",
+      "-annotate", "+1050+738", "Total",
+
+      "-font", "DejaVu-Sans", "-pointsize", "30", "-fill", "#1F2937",
+      "-annotate", "+90+808", "Stand rent payment",
+      "-annotate", "+740+808", "1",
+      "-annotate", "+890+808", `${text.amount}`,
+      "-annotate", "+1040+808", `${text.amount}`,
+
+      "-font", "DejaVu-Sans", "-pointsize", "21", "-fill", "#374151",
+      "-annotate", "+90+878", `Period: ${text.period}`,
+      "-annotate", "+90+948", `Vendor: ${text.vendorName}`,
+
+      "-font", "DejaVu-Sans-Bold", "-pointsize", "36", "-fill", "#FFFFFF",
+      "-annotate", "+90+1475", `Total Amount Paid: ${text.amount}`,
+
+      "-font", "DejaVu-Sans-Bold", "-pointsize", "44", "-fill", "#A46F09",
+      "-annotate", "+70+1610", "Issued By:",
+      "-font", "DejaVu-Sans", "-pointsize", "30", "-fill", "#1F2937",
+      "-annotate", "+70+1660", "STALLA",
+      "-annotate", "+70+1705", "Market Management Platform",
+      "-font", "DejaVu-Sans", "-pointsize", "26", "-fill", "#7C5A24",
+      "-annotate", "+760+1648", "Thank You for Your Business!",
+      "-annotate", "+760+1698", "This receipt is system-generated.",
       filePath
     );
 
@@ -131,6 +155,20 @@ export async function generatePaymentReceipt({ payment, vendor, stand }) {
 
 function sanitizeText(value) {
   return String(value ?? "-").replace(/\r?\n/g, " ").trim();
+}
+
+function formatAmount(value) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return sanitizeText(value);
+  const normalized = num.toLocaleString("fr-FR").replace(/\s+/g, " ");
+  return `${normalized} CFA`;
+}
+
+function resolveFirstExistingPath(paths) {
+  for (const p of paths) {
+    if (fs.existsSync(p)) return p;
+  }
+  return null;
 }
 
 function escapePdfText(value) {
