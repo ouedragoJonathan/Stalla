@@ -47,6 +47,7 @@ class AuthRepository {
 
   Future<ApiResponse<Map<String, dynamic>>> submitVendorApplication({
     required String fullName,
+    required String businessType,
     required String phone,
     String? email,
     required String desiredZone,
@@ -58,6 +59,7 @@ class AuthRepository {
         AppConstants.authVendorApplicationEndpoint,
         data: {
           'full_name': fullName,
+          'business_type': businessType,
           'phone': phone,
           'email': email?.trim().isEmpty == true ? null : email,
           'desired_zone': desiredZone,

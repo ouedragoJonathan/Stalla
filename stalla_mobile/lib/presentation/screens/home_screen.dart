@@ -124,11 +124,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        CircleAvatar(
-          radius: 25,
-          backgroundColor: AppColors.orangePantone.withValues(alpha: 0.1),
-          child: const Icon(Icons.person_rounded, color: AppColors.orangePantone),
-        ),
       ],
     );
   }

@@ -411,6 +411,12 @@ select {
   grid-template-columns: minmax(280px, 1fr) minmax(420px, 2fr);
 }
 
+.vendors-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(420px, 1fr));
+}
+
 .panel-card {
   background: #fff;
   border-radius: 24px;
@@ -509,6 +515,27 @@ select {
   color: #dc2626;
   border-color: #fecaca;
   background: #fff5f5;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status-pill.occupied {
+  background: #fff3e2;
+  color: #ea580c;
+  border: 1px solid #fed7aa;
+}
+
+.status-pill.available {
+  background: #ecfdf3;
+  color: #166534;
+  border: 1px solid #86efac;
 }
 
 /* DASHBOARD */
@@ -737,6 +764,7 @@ select {
   }
 
   .admin-split-grid,
+  .vendors-grid,
   .bento-layout {
     grid-template-columns: 1fr;
   }

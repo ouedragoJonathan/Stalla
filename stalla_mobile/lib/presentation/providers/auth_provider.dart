@@ -75,6 +75,7 @@ class AuthProvider extends ChangeNotifier {
 
   Future<bool> submitVendorApplication({
     required String fullName,
+    required String businessType,
     required String phone,
     String? email,
     required String desiredZone,
@@ -87,6 +88,7 @@ class AuthProvider extends ChangeNotifier {
 
     final response = await _authRepository.submitVendorApplication(
       fullName: fullName,
+      businessType: businessType,
       phone: phone,
       email: email,
       desiredZone: desiredZone,

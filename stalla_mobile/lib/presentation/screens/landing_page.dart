@@ -41,13 +41,11 @@ class LandingPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 80),
-
-                  // Logo + Nom
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Container(
-                        height: 50, // Ajuste la taille selon tes besoins
+                        height: 50,
                         width: 50,
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -59,27 +57,43 @@ class LandingPage extends StatelessWidget {
                             )
                           ],
                         ),
-                        // Utilisation de ton image au lieu du texte 'S'
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: Padding(
-                            padding: const EdgeInsets.all(
-                                8.0), // Marge interne pour le logo
+                            padding: const EdgeInsets.all(8.0),
                             child: Image.asset(
-                              'assets/logo/logo.png', // Ton chemin exact
+                              'assets/logo/logo.png',
                               fit: BoxFit.contain,
                             ),
                           ),
                         ),
                       ),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () => context.go('/login'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: const BorderSide(color: Colors.white70),
+                          ),
+                        ),
+                        child: Text(
+                          'Se connecter',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
+                  const SizedBox(height: 70),
 
-                  const SizedBox(height: 30),
-
-                  // Titre principal
                   Text(
-                    'Gérez votre stand\nen un clic.',
+                    'Trouvez votre zone\nidéale au marché.',
                     style: GoogleFonts.poppins(
                       fontSize: 38,
                       fontWeight: FontWeight.bold,
@@ -101,15 +115,13 @@ class LandingPage extends StatelessWidget {
 
                   const SizedBox(height: 40),
 
-                  // Bouton Commencer
                   SizedBox(
                     width: double.infinity,
                     height: 60,
                     child: ElevatedButton(
-                      onPressed: () =>
-                          context.go('/login'), // Vers ta page login
+                      onPressed: () => context.go(AppConstants.registerRoute),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF6B2C), // Orange vif
+                        backgroundColor: const Color(0xFFFF6B2C),
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
@@ -117,33 +129,9 @@ class LandingPage extends StatelessWidget {
                         elevation: 0,
                       ),
                       child: Text(
-                        'Commencer',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: OutlinedButton(
-                      onPressed: () => context.go(AppConstants.registerRoute),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        side:
-                            const BorderSide(color: Colors.white70, width: 1.2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                      ),
-                      child: Text(
                         'Demander un stand',
                         style: GoogleFonts.poppins(
-                          fontSize: 16,
+                          fontSize: 18,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -160,10 +148,10 @@ class LandingPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Wrap(
+                  const Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: const [
+                    children: [
                       _ZoneChip(label: 'Zone A - Entrée'),
                       _ZoneChip(label: 'Zone B - Produits frais'),
                       _ZoneChip(label: 'Zone C - Textile'),

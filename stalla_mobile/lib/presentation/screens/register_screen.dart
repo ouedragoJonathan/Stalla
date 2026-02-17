@@ -15,6 +15,7 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
+  final _businessTypeController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _budgetMinController = TextEditingController();
@@ -31,6 +32,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   void dispose() {
     _fullNameController.dispose();
+    _businessTypeController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
     _budgetMinController.dispose();
@@ -64,6 +66,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     final success = await context.read<AuthProvider>().submitVendorApplication(
           fullName: _fullNameController.text.trim(),
+          businessType: _businessTypeController.text.trim(),
           phone: _phoneController.text.trim(),
           email: _emailController.text.trim(),
           desiredZone: _selectedZone!,
@@ -95,20 +98,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        foregroundColor: Colors.black87,
-        title: const Text('Demande de stand'),
-      ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Center(
+                  child: SizedBox(
+                    height: 96,
+                    width: 96,
+                    child: Image.asset(
+                      'assets/logo/logo.png',
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) => const Icon(
+                        Icons.store_rounded,
+                        size: 72,
+                        color: AppColors.orangePantone,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
                 Text(
                   'Inscription vendeur',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -125,7 +138,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 _buildLabel('Nom complet'),
                 TextFormField(
                   controller: _fullNameController,
-                  decoration: const InputDecoration(hintText: 'Ex: Awa Kossi'),
+                  decoration:
+                      const InputDecoration(hintText: 'Ex: Jonathan Ouedraogo'),
+                  validator: (value) => (value == null || value.trim().isEmpty)
+                      ? 'Champ requis'
+                      : null,
+                ),
+                const SizedBox(height: 16),
+                _buildLabel('Activité du vendeur'),
+                TextFormField(
+                  controller: _businessTypeController,
+                  decoration:
+                      const InputDecoration(hintText: 'Ex: Vente de légumes'),
                   validator: (value) => (value == null || value.trim().isEmpty)
                       ? 'Champ requis'
                       : null,
@@ -136,7 +160,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
                   decoration:
-                      const InputDecoration(hintText: 'Ex: +229XXXXXXXX'),
+                      const InputDecoration(hintText: 'Ex: +226 70 00 00 00'),
                   validator: (value) => (value == null || value.trim().isEmpty)
                       ? 'Champ requis'
                       : null,
@@ -152,7 +176,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 16),
                 _buildLabel('Zone souhaitée'),
                 DropdownButtonFormField<String>(
-                  value: _selectedZone,
+                  initialValue: _selectedZone,
                   decoration:
                       const InputDecoration(hintText: 'Choisir une zone'),
                   items: _zones
@@ -223,6 +247,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     );
                   },
+                ),
+                const SizedBox(height: 10),
+                Center(
+                  child: TextButton(
+                    onPressed: () => context.go(AppConstants.loginRoute),
+                    child: RichText(
+                      text: const TextSpan(
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: 'Déjà un compte ? ',
+                            style: TextStyle(color: Colors.black87),
+                          ),
+                          TextSpan(
+                            text: 'Se connecter',
+                            style: TextStyle(color: AppColors.orangePantone),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),

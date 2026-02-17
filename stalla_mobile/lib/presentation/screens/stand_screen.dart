@@ -17,7 +17,8 @@ class StandScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Mon Stand', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Mon Stand',
+            style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -42,25 +43,18 @@ class StandScreen extends StatelessWidget {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
-                _buildDetailTile(Icons.map_outlined, 'Zone géographique', stand.zone),
-                _buildDetailTile(Icons.attach_money_rounded, 'Loyer mensuel', _formatCurrency(stand.monthlyRent)),
                 _buildDetailTile(
-                  Icons.calendar_today_rounded,
-                  'Fin de contrat',
-                  stand.endDate ?? 'Non définie',
-                ),
-                _buildDetailTile(
-                  Icons.timer_outlined,
-                  'Jours restants',
-                  stand.daysRemaining?.toString() ?? '-',
-                ),
+                    Icons.map_outlined, 'Zone géographique', stand.zone),
+                _buildDetailTile(Icons.attach_money_rounded, 'Loyer mensuel',
+                    _formatCurrency(stand.monthlyRent)),
                 const SizedBox(height: 30),
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: AppColors.orangePantone.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppColors.orangePantone.withValues(alpha: 0.2)),
+                    border: Border.all(
+                        color: AppColors.orangePantone.withValues(alpha: 0.2)),
                   ),
                   child: const Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,7 +106,8 @@ class StandScreen extends StatelessWidget {
               color: AppColors.orangePantone.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.storefront_rounded, color: AppColors.orangePantone, size: 40),
+            child: const Icon(Icons.storefront_rounded,
+                color: AppColors.orangePantone, size: 40),
           ),
           const SizedBox(height: 16),
           Text(
@@ -122,7 +117,8 @@ class StandScreen extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             'Contrat Actif',
-            style: TextStyle(color: Colors.green[600], fontWeight: FontWeight.bold),
+            style: TextStyle(
+                color: Colors.green[600], fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 24),
           const Divider(),
@@ -144,7 +140,8 @@ class StandScreen extends StatelessWidget {
       children: [
         Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
         const SizedBox(height: 4),
-        Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        Text(value,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       ],
     );
   }
@@ -163,7 +160,9 @@ class StandScreen extends StatelessWidget {
           const SizedBox(width: 16),
           Text(label, style: const TextStyle(color: Colors.grey, fontSize: 14)),
           const Spacer(),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          Text(value,
+              style:
+                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
         ],
       ),
     );
@@ -176,9 +175,11 @@ class StandScreen extends StatelessWidget {
         children: [
           Icon(Icons.store_outlined, size: 80, color: Colors.grey[300]),
           const SizedBox(height: 20),
-          const Text('Aucun stand assigné', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Text('Aucun stand assigné',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 10),
-          const Text('Veuillez contacter l\'administration.', style: TextStyle(color: Colors.grey)),
+          const Text('Veuillez contacter l\'administration.',
+              style: TextStyle(color: Colors.grey)),
         ],
       ),
     );

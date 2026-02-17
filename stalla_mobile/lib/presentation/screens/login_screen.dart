@@ -79,33 +79,12 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: InkWell(
-                      onTap: () => context.go('/landing'),
-                      borderRadius: BorderRadius.circular(50),
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.arrow_back_ios_new_rounded,
-                          size: 20,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
                   // --- 1. LOGO CENTRÉ ---
                   Center(
                     child: Container(
@@ -178,8 +157,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       prefixIcon: Icon(_prefixIcon, size: 20),
                     ),
                     validator: (value) {
-                      if (value == null || value.isEmpty)
+                      if (value == null || value.isEmpty) {
                         return 'Ce champ est requis';
+                      }
                       return null;
                     },
                   ),
@@ -208,8 +188,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     validator: (value) {
-                      if (value == null || value.isEmpty)
+                      if (value == null || value.isEmpty) {
                         return 'Entrez votre mot de passe';
+                      }
                       return null;
                     },
                   ),
@@ -254,11 +235,22 @@ class _LoginScreenState extends State<LoginScreen> {
                   Center(
                     child: TextButton(
                       onPressed: () => context.go(AppConstants.registerRoute),
-                      child: const Text(
-                        'Pas de compte ? Demander un stand',
-                        style: TextStyle(
-                          color: AppColors.orangePantone,
-                          fontWeight: FontWeight.w600,
+                      child: RichText(
+                        text: const TextSpan(
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: 'Pas de compte ? ',
+                              style: TextStyle(color: Colors.black87),
+                            ),
+                            TextSpan(
+                              text: 'Demander un stand',
+                              style: TextStyle(color: AppColors.orangePantone),
+                            ),
+                          ],
                         ),
                       ),
                     ),

@@ -3,6 +3,25 @@ import type { Stand } from "../../../core/types";
 import { createStall, deleteStall, getStalls } from "../adminService";
 
 const ZONES = ["A", "B", "C", "D"] as const;
+const ZONE_LABELS: Record<string, string> = {
+  A: "Zone A - Entrée",
+  B: "Zone B - Produits frais",
+  C: "Zone C - Textile",
+  D: "Zone D - Divers",
+};
+
+function formatZone(zone: string): string {
+  const key = zone.trim().toUpperCase().replace(/^ZONE\s*/i, "").charAt(0);
+  if (ZONE_LABELS[key]) return ZONE_LABELS[key];
+  return zone;
+}
+
+function getStatusUi(status: Stand["status"]) {
+  if (status === "OCCUPIED") {
+    return { label: "Occupé", className: "status-pill occupied" };
+  }
+  return { label: "Disponible", className: "status-pill available" };
+}
 
 function getNextStandCode(zone: string, stalls: Stand[]): string {
   const normalizedZone = zone.trim().toUpperCase();
@@ -103,7 +122,7 @@ export function StallsPage() {
               <select value={zone} onChange={(event) => setZone(event.target.value as (typeof ZONES)[number])} required>
                 {ZONES.map((zoneValue) => (
                   <option key={zoneValue} value={zoneValue}>
-                    Zone {zoneValue}
+                    {ZONE_LABELS[zoneValue]}
                   </option>
                 ))}
               </select>
@@ -144,31 +163,40 @@ export function StallsPage() {
                 </tr>
               </thead>
               <tbody>
-                {stalls.map((stall) => (
+                {stalls.map((stall) => {
+                  const statusUi = getStatusUi(stall.status);
+                  return (
                   <tr key={stall.id}>
                     <td>{stall.code}</td>
-                    <td>{stall.zone}</td>
+                    <td>{formatZone(stall.zone)}</td>
                     <td>{stall.monthly_price}</td>
-                    <td>{stall.status}</td>
+                    <td>
+                      <span className={statusUi.className}>{statusUi.label}</span>
+                    </td>
                     <td>{stall.active_allocation?.vendor_name ?? "-"}</td>
                     <td align="center">
-                      <button
-                        type="button"
-                        className="icon-btn danger"
-                        onClick={() => handleDeleteStand(stall)}
-                        disabled={deletingId === stall.id}
-                        title="Supprimer"
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M3 6h18" />
-                          <path d="M8 6V4h8v2" />
-                          <path d="M19 6l-1 14H6L5 6" />
-                          <path d="M10 11v6M14 11v6" />
-                        </svg>
-                      </button>
+                      {stall.status !== "OCCUPIED" ? (
+                        <button
+                          type="button"
+                          className="icon-btn danger"
+                          onClick={() => handleDeleteStand(stall)}
+                          disabled={deletingId === stall.id}
+                          title="Supprimer"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M3 6h18" />
+                            <path d="M8 6V4h8v2" />
+                            <path d="M19 6l-1 14H6L5 6" />
+                            <path d="M10 11v6M14 11v6" />
+                          </svg>
+                        </button>
+                      ) : (
+                        "-"
+                      )}
                     </td>
                   </tr>
-                ))}
+                );
+                })}
               </tbody>
             </table>
           )}
