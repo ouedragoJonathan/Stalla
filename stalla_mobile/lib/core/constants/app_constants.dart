@@ -2,7 +2,7 @@ class AppConstants {
   static const String appName = 'STALLA';
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://192.168.100.84:4000/api',
+    defaultValue: 'https://stalla-production.up.railway.app/api',
   );
   static const String supportPhone = '+22900000000';
   // Valeurs possibles: 'orange' | 'earth'
