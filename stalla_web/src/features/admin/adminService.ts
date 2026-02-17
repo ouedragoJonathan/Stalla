@@ -7,6 +7,7 @@ import type {
   Stand,
   SupportSettings,
   Vendor,
+  VendorApplication,
 } from "../../core/types";
 
 export async function getStalls(): Promise<ApiResponse<Stand[]>> {
@@ -40,6 +41,18 @@ export async function createVendor(payload: {
 
 export async function deleteVendor(vendorId: number): Promise<ApiResponse<null>> {
   return apiRequest<null>(`/admin/vendors/${vendorId}`, "DELETE");
+}
+
+export async function getVendorApplications(): Promise<ApiResponse<VendorApplication[]>> {
+  return apiRequest<VendorApplication[]>("/admin/vendor-applications");
+}
+
+export async function approveVendorApplication(applicationId: number): Promise<ApiResponse<unknown>> {
+  return apiRequest<unknown>(`/admin/vendor-applications/${applicationId}/approve`, "PATCH");
+}
+
+export async function rejectVendorApplication(applicationId: number): Promise<ApiResponse<unknown>> {
+  return apiRequest<unknown>(`/admin/vendor-applications/${applicationId}/reject`, "PATCH");
 }
 
 export async function createAllocation(payload: {

@@ -18,7 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
-  
+
   // Variable pour basculer entre Email et Téléphone
   bool _isEmailLogin = true;
 
@@ -30,10 +30,13 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   // Helpers pour le design dynamique et l'UX
-  String get _labelText => _isEmailLogin ? 'Adresse email' : 'Numéro de téléphone';
+  String get _labelText =>
+      _isEmailLogin ? 'Adresse email' : 'Numéro de téléphone';
   String get _hintText => _isEmailLogin ? 'vendeur@example.com' : '07 00 00 00';
-  TextInputType get _keyboardType => _isEmailLogin ? TextInputType.emailAddress : TextInputType.phone;
-  IconData get _prefixIcon => _isEmailLogin ? Icons.email_outlined : Icons.phone_android_outlined;
+  TextInputType get _keyboardType =>
+      _isEmailLogin ? TextInputType.emailAddress : TextInputType.phone;
+  IconData get _prefixIcon =>
+      _isEmailLogin ? Icons.email_outlined : Icons.phone_android_outlined;
 
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
@@ -50,7 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (success) {
       final vendorProvider = context.read<VendorProvider>();
-      
+
       // Chargement des données métier avant d'entrer dans l'app
       await Future.wait([
         vendorProvider.fetchProfile(),
@@ -112,7 +115,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Image.asset(
                         'assets/logo/logo.png',
                         fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) => const Icon(
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(
                           Icons.store_rounded,
                           size: 80,
                           color: AppColors.orangePantone,
@@ -125,9 +129,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   Text(
                     'Connexion',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -147,15 +151,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Row(
                       children: [
                         _buildTabItem(
-                          title: 'Email', 
-                          isActive: _isEmailLogin, 
-                          onTap: () => setState(() => _isEmailLogin = true)
-                        ),
+                            title: 'Email',
+                            isActive: _isEmailLogin,
+                            onTap: () => setState(() => _isEmailLogin = true)),
                         _buildTabItem(
-                          title: 'Téléphone', 
-                          isActive: !_isEmailLogin, 
-                          onTap: () => setState(() => _isEmailLogin = false)
-                        ),
+                            title: 'Téléphone',
+                            isActive: !_isEmailLogin,
+                            onTap: () => setState(() => _isEmailLogin = false)),
                       ],
                     ),
                   ),
@@ -164,7 +166,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   // --- 4. CHAMP IDENTIFIANT (DYNAMIQUE) ---
                   Text(
                     _labelText,
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w600, fontSize: 14),
                   ),
                   const SizedBox(height: 8),
                   TextFormField(
@@ -175,7 +178,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       prefixIcon: Icon(_prefixIcon, size: 20),
                     ),
                     validator: (value) {
-                      if (value == null || value.isEmpty) return 'Ce champ est requis';
+                      if (value == null || value.isEmpty)
+                        return 'Ce champ est requis';
                       return null;
                     },
                   ),
@@ -194,22 +198,29 @@ class _LoginScreenState extends State<LoginScreen> {
                       hintText: '••••••••',
                       prefixIcon: const Icon(Icons.lock_outline, size: 20),
                       suffixIcon: IconButton(
-                        icon: Icon(_isPasswordVisible ? Icons.visibility_off : Icons.visibility, color: Colors.grey),
-                        onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                        icon: Icon(
+                            _isPasswordVisible
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            color: Colors.grey),
+                        onPressed: () => setState(
+                            () => _isPasswordVisible = !_isPasswordVisible),
                       ),
                     ),
                     validator: (value) {
-                      if (value == null || value.isEmpty) return 'Entrez votre mot de passe';
+                      if (value == null || value.isEmpty)
+                        return 'Entrez votre mot de passe';
                       return null;
                     },
                   ),
-                  
+
                   const SizedBox(height: 40),
 
                   // --- 6. BOUTON DE CONNEXION ---
                   Consumer<AuthProvider>(
                     builder: (context, authProvider, _) {
-                      final isLoading = authProvider.status == AuthStatus.loading;
+                      final isLoading =
+                          authProvider.status == AuthStatus.loading;
                       return SizedBox(
                         width: double.infinity,
                         height: 55,
@@ -217,22 +228,40 @@ class _LoginScreenState extends State<LoginScreen> {
                           onPressed: isLoading ? null : _handleLogin,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.orangePantone,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16)),
                             elevation: 0,
                           ),
                           child: isLoading
                               ? const SizedBox(
                                   height: 24,
                                   width: 24,
-                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                      color: Colors.white, strokeWidth: 2),
                                 )
                               : const Text(
                                   'Se connecter',
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white),
                                 ),
                         ),
                       );
                     },
+                  ),
+                  const SizedBox(height: 12),
+                  Center(
+                    child: TextButton(
+                      onPressed: () => context.go(AppConstants.registerRoute),
+                      child: const Text(
+                        'Pas de compte ? Demander un stand',
+                        style: TextStyle(
+                          color: AppColors.orangePantone,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -244,7 +273,10 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   // Widget personnalisé pour l'onglet du sélecteur
-  Widget _buildTabItem({required String title, required bool isActive, required VoidCallback onTap}) {
+  Widget _buildTabItem(
+      {required String title,
+      required bool isActive,
+      required VoidCallback onTap}) {
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -253,9 +285,14 @@ class _LoginScreenState extends State<LoginScreen> {
           decoration: BoxDecoration(
             color: isActive ? Colors.white : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
-            boxShadow: isActive 
-              ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))]
-              : [],
+            boxShadow: isActive
+                ? [
+                    BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4))
+                  ]
+                : [],
           ),
           alignment: Alignment.center,
           child: Text(

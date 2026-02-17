@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  approveVendorApplication,
   createAdminPayment,
   createAdminStand,
   createAdminVendor,
@@ -9,6 +10,8 @@ import {
   getSupportSettings,
   listAdminStalls,
   listAdminVendors,
+  listVendorApplications,
+  rejectVendorApplication,
   reportDebtors,
   updateSupportSettings,
 } from "../controllers/adminController.js";
@@ -90,6 +93,9 @@ router.get("/vendors", listAdminVendors);
  */
 router.post("/vendors", createAdminVendor);
 router.delete("/vendors/:id", deleteAdminVendor);
+router.get("/vendor-applications", listVendorApplications);
+router.patch("/vendor-applications/:id/approve", approveVendorApplication);
+router.patch("/vendor-applications/:id/reject", rejectVendorApplication);
 
 /**
  * @openapi

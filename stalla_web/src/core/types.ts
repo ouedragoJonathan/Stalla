@@ -55,6 +55,18 @@ export interface Vendor {
   email_delivery?: { ok: boolean; messageId?: string; reason?: string } | null;
 }
 
+export interface VendorApplication {
+  id: number;
+  full_name: string;
+  phone: string;
+  email: string | null;
+  desired_zone: string;
+  budget_min: number;
+  budget_max: number;
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  created_at: string;
+}
+
 export interface Allocation {
   id: number;
   vendor_id: number;

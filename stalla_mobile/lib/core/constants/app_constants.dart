@@ -14,6 +14,7 @@ class AppConstants {
 
   // Routes
   static const String loginRoute = '/login';
+  static const String registerRoute = '/register';
   static const String homeRoute = '/home';
   static const String standRoute = '/stand';
   static const String debtsRoute = '/debts';
@@ -22,6 +23,8 @@ class AppConstants {
 
   // API Endpoints
   static const String authLoginEndpoint = '/auth/login';
+  static const String authVendorApplicationEndpoint =
+      '/auth/vendor-application';
   static const String vendorProfileEndpoint = '/vendor/profile';
   static const String vendorMyStallEndpoint = '/vendor/my-stall';
   static const String vendorBalanceEndpoint = '/vendor/balance';

@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import '../core/constants/app_constants.dart';
 import '../presentation/screens/landing_page.dart';
 import '../presentation/screens/login_screen.dart';
+import '../presentation/screens/register_screen.dart';
 import '../presentation/screens/home_screen.dart';
 import '../presentation/screens/stand_screen.dart';
 import '../presentation/screens/debts_screen.dart';
@@ -15,25 +16,27 @@ class AppRouter {
 
   late final GoRouter router = GoRouter(
     // 1. On définit la Landing Page comme emplacement de départ
-    initialLocation: '/landing', 
+    initialLocation: '/landing',
 
     redirect: (context, state) async {
       final isLoggedIn = await _authRepository.isLoggedIn();
-      
+
       // On vérifie sur quelle route se trouve l'utilisateur
       final isLandingRoute = state.matchedLocation == '/landing';
       final isLoginRoute = state.matchedLocation == AppConstants.loginRoute;
+      final isRegisterRoute =
+          state.matchedLocation == AppConstants.registerRoute;
 
       // SI l'utilisateur n'est PAS connecté :
       // On l'autorise à rester sur Landing ou Login, sinon on le renvoie sur Landing
       if (!isLoggedIn) {
-        if (isLandingRoute || isLoginRoute) return null;
+        if (isLandingRoute || isLoginRoute || isRegisterRoute) return null;
         return '/landing';
       }
 
       // SI l'utilisateur EST connecté :
       // S'il essaie d'aller sur Landing ou Login, on le redirige vers la Home
-      if (isLoggedIn && (isLandingRoute || isLoginRoute)) {
+      if (isLoggedIn && (isLandingRoute || isLoginRoute || isRegisterRoute)) {
         return AppConstants.homeRoute;
       }
 
@@ -52,6 +55,10 @@ class AppRouter {
       GoRoute(
         path: AppConstants.loginRoute,
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: AppConstants.registerRoute,
+        builder: (context, state) => const RegisterScreen(),
       ),
 
       // Routes protégées (nécessitent d'être connecté)

@@ -1,15 +1,68 @@
 import crypto from "crypto";
 import { Op } from "sequelize";
-import { sequelize, User, Vendor, Stand, Allocation, Payment, Setting } from "../database.js";
+import { sequelize, User, Vendor, VendorApplication, Stand, Allocation, Payment, Setting } from "../database.js";
 import { sendResponse } from "../utils/response.js";
 import { computeDebtForAllocation } from "../utils/debt.js";
-import { sendVendorWelcomeEmail } from "../services/emailService.js";
+import { sendVendorApplicationRejectedEmail, sendVendorWelcomeEmail } from "../services/emailService.js";
 import { generatePaymentReceipt } from "../services/pdfService.js";
 
 const periodRegex = /^\d{4}-\d{2}$/;
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
+}
+
+async function createVendorAccount({ email, full_name, phone, business_type }, transaction) {
+  if (email) {
+    const existingUser = await User.findOne({ where: { email }, transaction });
+    if (existingUser) {
+      return {
+        ok: false,
+        status: 400,
+        message: "Email déjà utilisé",
+        errors: { email: "Un compte existe déjà avec cet email" },
+      };
+    }
+  }
+
+  const existingPhone = await Vendor.findOne({ where: { phone }, transaction });
+  if (existingPhone) {
+    return {
+      ok: false,
+      status: 400,
+      message: "Numéro de téléphone déjà utilisé",
+      errors: { phone: "Un vendeur existe déjà avec ce numéro" },
+    };
+  }
+
+  const generatedPassword = crypto.randomBytes(6).toString("base64url");
+
+  const user = await User.create(
+    {
+      name: full_name,
+      email: email || null,
+      password: generatedPassword,
+      role: "VENDOR",
+    },
+    { transaction }
+  );
+
+  const vendor = await Vendor.create(
+    {
+      userId: user.id,
+      fullName: full_name,
+      phone,
+      businessType: business_type,
+    },
+    { transaction }
+  );
+
+  return {
+    ok: true,
+    vendor,
+    user,
+    generatedPassword,
+  };
 }
 
 async function getActiveAllocationByStallId() {
@@ -204,51 +257,21 @@ export async function createAdminVendor(req, res) {
       });
     }
 
-    if (email) {
-      const existingUser = await User.findOne({ where: { email }, transaction: tx });
-      if (existingUser) {
-        await tx.rollback();
-        return sendResponse(res, {
-          status: 400,
-          success: false,
-          message: "Email déjà utilisé",
-          errors: { email: "Un compte existe déjà avec cet email" },
-        });
-      }
-    }
-
-    const existingPhone = await Vendor.findOne({ where: { phone }, transaction: tx });
-    if (existingPhone) {
+    const createResult = await createVendorAccount(
+      { email, full_name, phone, business_type },
+      tx
+    );
+    if (!createResult.ok) {
       await tx.rollback();
       return sendResponse(res, {
-        status: 400,
+        status: createResult.status,
         success: false,
-        message: "Numéro de téléphone déjà utilisé",
-        errors: { phone: "Un vendeur existe déjà avec ce numéro" },
+        message: createResult.message,
+        errors: createResult.errors,
       });
     }
 
-    const generatedPassword = crypto.randomBytes(6).toString("base64url");
-
-    const user = await User.create(
-      {
-        name: full_name,
-        email: email || null,
-        password: generatedPassword,
-        role: "VENDOR",
-      },
-      { transaction: tx }
-    );
-
-    const vendor = await Vendor.create(
-      {
-        userId: user.id,
-        fullName: full_name,
-        phone,
-        businessType: business_type,
-      },
-      { transaction: tx }
-    );
+    const { vendor, user, generatedPassword } = createResult;
 
     await tx.commit();
 
@@ -620,6 +643,187 @@ export async function updateSupportSettings(req, res) {
       status: 500,
       success: false,
       message: "Erreur lors de la mise à jour des paramètres",
+      errors: { server: err.message },
+    });
+  }
+}
+
+export async function listVendorApplications(req, res) {
+  try {
+    const applications = await VendorApplication.findAll({
+      where: { status: "PENDING" },
+      order: [["createdAt", "DESC"]],
+    });
+
+    const data = applications.map((item) => ({
+      id: item.id,
+      full_name: item.fullName,
+      phone: item.phone,
+      email: item.email,
+      desired_zone: item.desiredZone,
+      budget_min: Number(item.budgetMin),
+      budget_max: Number(item.budgetMax),
+      status: item.status,
+      created_at: item.createdAt,
+    }));
+
+    return sendResponse(res, {
+      status: 200,
+      message: "Liste des demandes vendeurs",
+      data,
+    });
+  } catch (err) {
+    return sendResponse(res, {
+      status: 500,
+      success: false,
+      message: "Erreur lors de la récupération des demandes vendeurs",
+      errors: { server: err.message },
+    });
+  }
+}
+
+export async function approveVendorApplication(req, res) {
+  const tx = await sequelize.transaction();
+  try {
+    const { id } = req.params;
+    const application = await VendorApplication.findByPk(id, { transaction: tx });
+    if (!application) {
+      await tx.rollback();
+      return sendResponse(res, {
+        status: 404,
+        success: false,
+        message: "Demande introuvable",
+        errors: { request: "Aucune demande avec cet id" },
+      });
+    }
+
+    if (application.status !== "PENDING") {
+      await tx.rollback();
+      return sendResponse(res, {
+        status: 400,
+        success: false,
+        message: "Cette demande a déjà été traitée",
+        errors: { status: `Statut actuel: ${application.status}` },
+      });
+    }
+
+    const createResult = await createVendorAccount(
+      {
+        email: application.email,
+        full_name: application.fullName,
+        phone: application.phone,
+        business_type: "Non renseignée",
+      },
+      tx
+    );
+    if (!createResult.ok) {
+      await tx.rollback();
+      return sendResponse(res, {
+        status: createResult.status,
+        success: false,
+        message: createResult.message,
+        errors: createResult.errors,
+      });
+    }
+
+    const { vendor, user, generatedPassword } = createResult;
+    await application.update({ status: "APPROVED" }, { transaction: tx });
+    await tx.commit();
+
+    let emailStatus = null;
+    try {
+      const emailDelivery = await sendVendorWelcomeEmail({
+        to: user.email,
+        fullName: vendor.fullName,
+        password: generatedPassword,
+        phone: vendor.phone,
+      });
+      emailStatus = emailDelivery;
+    } catch (emailErr) {
+      emailStatus = { ok: false, reason: emailErr.message };
+    }
+
+    return sendResponse(res, {
+      status: 200,
+      message: "Demande validée et vendeur créé",
+      data: {
+        application: {
+          id: application.id,
+          status: "APPROVED",
+        },
+        vendor: {
+          id: vendor.id,
+          full_name: vendor.fullName,
+          phone: vendor.phone,
+          email: user.email,
+          default_password: generatedPassword,
+          email_delivery: emailStatus,
+        },
+      },
+    });
+  } catch (err) {
+    await tx.rollback();
+    return sendResponse(res, {
+      status: 500,
+      success: false,
+      message: "Erreur lors de la validation de la demande",
+      errors: { server: err.message },
+    });
+  }
+}
+
+export async function rejectVendorApplication(req, res) {
+  try {
+    const { id } = req.params;
+    const application = await VendorApplication.findByPk(id);
+    if (!application) {
+      return sendResponse(res, {
+        status: 404,
+        success: false,
+        message: "Demande introuvable",
+        errors: { request: "Aucune demande avec cet id" },
+      });
+    }
+
+    if (application.status !== "PENDING") {
+      return sendResponse(res, {
+        status: 400,
+        success: false,
+        message: "Cette demande a déjà été traitée",
+        errors: { status: `Statut actuel: ${application.status}` },
+      });
+    }
+
+    await application.update({ status: "REJECTED" });
+
+    let emailStatus = null;
+    try {
+      if (application.email) {
+        emailStatus = await sendVendorApplicationRejectedEmail({
+          to: application.email,
+          fullName: application.fullName,
+        });
+      } else {
+        emailStatus = { ok: false, reason: "No recipient email" };
+      }
+    } catch (emailErr) {
+      emailStatus = { ok: false, reason: emailErr.message };
+    }
+
+    return sendResponse(res, {
+      status: 200,
+      message: "Demande rejetée",
+      data: {
+        id: application.id,
+        status: application.status,
+        email_delivery: emailStatus,
+      },
+    });
+  } catch (err) {
+    return sendResponse(res, {
+      status: 500,
+      success: false,
+      message: "Erreur lors du rejet de la demande",
       errors: { server: err.message },
     });
   }

@@ -45,6 +45,41 @@ class AuthRepository {
     }
   }
 
+  Future<ApiResponse<Map<String, dynamic>>> submitVendorApplication({
+    required String fullName,
+    required String phone,
+    String? email,
+    required String desiredZone,
+    required double budgetMin,
+    required double budgetMax,
+  }) async {
+    try {
+      final response = await _apiClient.post(
+        AppConstants.authVendorApplicationEndpoint,
+        data: {
+          'full_name': fullName,
+          'phone': phone,
+          'email': email?.trim().isEmpty == true ? null : email,
+          'desired_zone': desiredZone,
+          'budget_min': budgetMin,
+          'budget_max': budgetMax,
+        },
+      );
+
+      return ApiResponse<Map<String, dynamic>>.fromJson(
+        response.data,
+        (data) => data as Map<String, dynamic>,
+      );
+    } on DioException catch (e) {
+      return ApiResponse(
+        success: false,
+        message: e.response?.data['message'] ??
+            'Erreur lors de l\'envoi de la demande',
+        errors: e.response?.data['errors'],
+      );
+    }
+  }
+
   Future<void> logout() async {
     await _storage.clearAll();
   }

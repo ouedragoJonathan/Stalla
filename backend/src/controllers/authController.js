@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { User, Vendor } from "../database.js";
+import { User, Vendor, VendorApplication } from "../database.js";
 import { config } from "../config.js";
 import { sendResponse } from "../utils/response.js";
 import { sendAdminResetEmail } from "../services/emailService.js";
@@ -263,6 +263,80 @@ export async function resetAdminPassword(req, res) {
       status: 500,
       success: false,
       message: "Erreur serveur lors de la réinitialisation",
+      errors: { server: err.message },
+    });
+  }
+}
+
+export async function submitVendorApplication(req, res) {
+  try {
+    const { full_name, phone, email, desired_zone, budget_min, budget_max } = req.body;
+
+    if (!full_name || !phone || !desired_zone || budget_min == null || budget_max == null) {
+      return sendResponse(res, {
+        status: 400,
+        success: false,
+        message: "Champs obligatoires manquants",
+        errors: {
+          fields: "full_name, phone, desired_zone, budget_min, budget_max requis (email optionnel)",
+        },
+      });
+    }
+
+    const min = Number(budget_min);
+    const max = Number(budget_max);
+    if (!Number.isFinite(min) || !Number.isFinite(max) || min <= 0 || max <= 0 || min > max) {
+      return sendResponse(res, {
+        status: 400,
+        success: false,
+        message: "Marge de prix invalide",
+        errors: { budget: "budget_min et budget_max doivent être valides, > 0 et min <= max" },
+      });
+    }
+
+    const existingPhone = await Vendor.findOne({ where: { phone } });
+    if (existingPhone) {
+      return sendResponse(res, {
+        status: 400,
+        success: false,
+        message: "Ce numéro est déjà enregistré",
+        errors: { phone: "Un vendeur actif existe déjà avec ce numéro" },
+      });
+    }
+
+    const existingPending = await VendorApplication.findOne({ where: { phone, status: "PENDING" } });
+    if (existingPending) {
+      return sendResponse(res, {
+        status: 400,
+        success: false,
+        message: "Une demande est déjà en attente pour ce numéro",
+        errors: { phone: "Demande déjà soumise" },
+      });
+    }
+
+    const application = await VendorApplication.create({
+      fullName: full_name.trim(),
+      phone: phone.trim(),
+      email: email?.trim() || null,
+      desiredZone: desired_zone.trim(),
+      budgetMin: min,
+      budgetMax: max,
+      status: "PENDING",
+    });
+
+    return sendResponse(res, {
+      status: 201,
+      message: "Demande envoyée avec succès. Un admin la traitera bientôt.",
+      data: {
+        id: application.id,
+        status: application.status,
+      },
+    });
+  } catch (err) {
+    return sendResponse(res, {
+      status: 500,
+      success: false,
+      message: "Erreur lors de l'envoi de la demande vendeur",
       errors: { server: err.message },
     });
   }

@@ -2,7 +2,7 @@ import { API_BASE_URL } from "./constants";
 import { clearSession, getToken } from "./storage";
 import type { ApiResponse } from "./types";
 
-type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
+type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 export async function apiRequest<T>(
   path: string,

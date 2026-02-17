@@ -72,4 +72,37 @@ class AuthProvider extends ChangeNotifier {
     _status = AuthStatus.unauthenticated;
     notifyListeners();
   }
+
+  Future<bool> submitVendorApplication({
+    required String fullName,
+    required String phone,
+    String? email,
+    required String desiredZone,
+    required double budgetMin,
+    required double budgetMax,
+  }) async {
+    _status = AuthStatus.loading;
+    _errorMessage = null;
+    notifyListeners();
+
+    final response = await _authRepository.submitVendorApplication(
+      fullName: fullName,
+      phone: phone,
+      email: email,
+      desiredZone: desiredZone,
+      budgetMin: budgetMin,
+      budgetMax: budgetMax,
+    );
+
+    if (response.success) {
+      _status = AuthStatus.unauthenticated;
+      notifyListeners();
+      return true;
+    }
+
+    _errorMessage = response.message ?? 'Erreur lors de la demande';
+    _status = AuthStatus.unauthenticated;
+    notifyListeners();
+    return false;
+  }
 }
