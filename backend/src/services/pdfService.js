@@ -38,59 +38,90 @@ export async function generatePaymentReceipt({ payment, vendor, stand }) {
   try {
     const args = [
       "-size", "1240x1754", "xc:white",
-      "-fill", "#FFF3E0", "-draw", "rectangle 0,0 1240,240",
-      "-fill", "#F5F5F5", "-draw", "rectangle 70,360 1170,362",
-      "-fill", "#F5F5F5", "-draw", "rectangle 70,980 1170,982",
+      "-fill", "#FFF7ED", "-draw", "rectangle 0,0 1240,260",
+      "-fill", "#F97316", "-draw", "rectangle 0,210 1240,260",
+      "-fill", "#FFFFFF", "-stroke", "#E5E7EB", "-strokewidth", "2",
+      "-draw", "roundrectangle 60,300 1180,1650 24,24",
+      "-fill", "#F9FAFB", "-stroke", "#E5E7EB", "-strokewidth", "1",
+      "-draw", "roundrectangle 90,730 1150,920 16,16",
+      "-fill", "#FFF7ED", "-stroke", "#FDBA74", "-strokewidth", "1",
+      "-draw", "roundrectangle 90,980 1150,1250 16,16",
+      "-fill", "#F9FAFB", "-stroke", "#E5E7EB", "-strokewidth", "1",
+      "-draw", "roundrectangle 90,1310 1150,1560 16,16",
     ];
 
     if (fs.existsSync(logoPath)) {
-      args.push("(", logoPath, "-resize", "140x140", ")", "-gravity", "NorthWest", "-geometry", "+70+50", "-composite");
+      args.push("(", logoPath, "-resize", "170x170", ")", "-gravity", "NorthWest", "-geometry", "+85+35", "-composite");
     }
 
     args.push(
-      "-font", "DejaVu-Sans-Bold", "-pointsize", "56", "-fill", "#111111", "-gravity", "NorthWest",
-      "-annotate", "+250+120", "Recu de paiement",
-      "-font", "DejaVu-Sans", "-pointsize", "28", "-fill", "#374151",
-      "-annotate", "+74+290", `No recu: ${text.receiptNo}`,
-      "-annotate", "+860+290", `Date: ${text.paidAt}`,
+      "-font", "DejaVu-Sans-Bold", "-pointsize", "54", "-fill", "#111827", "-gravity", "NorthWest",
+      "-annotate", "+290+112", "Recu de Paiement",
+      "-font", "DejaVu-Sans", "-pointsize", "26", "-fill", "#4B5563",
+      "-annotate", "+292+164", "STALLA - Gestion des Stands",
+      "-font", "DejaVu-Sans-Bold", "-pointsize", "28", "-fill", "#FFFFFF",
+      "-annotate", "+92+246", `No: ${text.receiptNo}`,
+      "-annotate", "+900+246", `Date: ${text.paidAt}`,
 
-      "-font", "DejaVu-Sans-Bold", "-pointsize", "34", "-fill", "#111111",
-      "-annotate", "+74+430", "Informations vendeur",
-      "-font", "DejaVu-Sans", "-pointsize", "28", "-fill", "#1F2937",
-      "-annotate", "+74+500", `Nom: ${text.vendorName}`,
-      "-annotate", "+74+560", `Email: ${text.vendorEmail}`,
-      "-annotate", "+74+620", `Telephone: ${text.vendorPhone}`,
+      "-font", "DejaVu-Sans-Bold", "-pointsize", "32", "-fill", "#111827",
+      "-annotate", "+95+385", "Informations Vendeur",
+      "-font", "DejaVu-Sans", "-pointsize", "27", "-fill", "#1F2937",
+      "-annotate", "+95+450", `Nom: ${text.vendorName}`,
+      "-annotate", "+95+510", `Email: ${text.vendorEmail}`,
+      "-annotate", "+95+570", `Telephone: ${text.vendorPhone}`,
+      "-annotate", "+95+630", `Stand: ${text.standCode}  |  Zone: ${text.standZone}`,
 
-      "-font", "DejaVu-Sans-Bold", "-pointsize", "34", "-fill", "#111111",
-      "-annotate", "+74+760", "Informations stand",
-      "-font", "DejaVu-Sans", "-pointsize", "28", "-fill", "#1F2937",
-      "-annotate", "+74+830", `Code stand: ${text.standCode}`,
-      "-annotate", "+74+890", `Zone: ${text.standZone}`,
+      "-font", "DejaVu-Sans-Bold", "-pointsize", "30", "-fill", "#111827",
+      "-annotate", "+95+790", "Ligne de Paiement",
+      "-font", "DejaVu-Sans-Bold", "-pointsize", "24", "-fill", "#6B7280",
+      "-annotate", "+95+850", "Description",
+      "-annotate", "+700+850", "Periode",
+      "-annotate", "+980+850", "Montant",
+      "-fill", "#E5E7EB", "-draw", "line 95,870 1145,870",
+      "-font", "DejaVu-Sans", "-pointsize", "27", "-fill", "#111827",
+      "-annotate", "+95+905", "Paiement location stand",
+      "-annotate", "+700+905", `${text.period}`,
+      "-font", "DejaVu-Sans-Bold", "-pointsize", "29", "-fill", "#111827",
+      "-annotate", "+965+905", `${text.amount}`,
 
-      "-font", "DejaVu-Sans-Bold", "-pointsize", "34", "-fill", "#111111",
-      "-annotate", "+74+1050", "Detail du paiement",
-      "-font", "DejaVu-Sans-Bold", "-pointsize", "40", "-fill", "#EA580C",
-      "-annotate", "+74+1135", `Montant paye: ${text.amount}`,
-      "-font", "DejaVu-Sans", "-pointsize", "28", "-fill", "#1F2937",
-      "-annotate", "+74+1195", `Periode: ${text.period}`,
+      "-font", "DejaVu-Sans-Bold", "-pointsize", "30", "-fill", "#111827",
+      "-annotate", "+95+1375", "Resume",
+      "-font", "DejaVu-Sans", "-pointsize", "27", "-fill", "#374151",
+      "-annotate", "+95+1440", "Mode: Encaissement STALLA",
+      "-annotate", "+95+1495", "Statut: Paiement enregistre",
+      "-font", "DejaVu-Sans-Bold", "-pointsize", "38", "-fill", "#EA580C",
+      "-annotate", "+790+1498", `Total: ${text.amount}`,
 
       "-font", "DejaVu-Sans", "-pointsize", "22", "-fill", "#6B7280",
-      "-annotate", "+74+1670", "Document genere automatiquement par STALLA.",
+      "-annotate", "+95+1618", "Merci pour votre paiement.",
+      "-annotate", "+95+1650", "Document genere automatiquement par STALLA.",
       filePath
     );
 
     execFileSync("convert", args, { stdio: "ignore" });
   } catch {
     const fallbackLines = [
-      "STALLA - Recu de paiement",
+      "STALLA - RECU DE PAIEMENT",
+      "----------------------------------------",
       `No recu: ${text.receiptNo}`,
       `Date: ${text.paidAt}`,
+      "",
+      "Informations vendeur",
       `Vendeur: ${text.vendorName}`,
       `Email: ${text.vendorEmail}`,
       `Telephone: ${text.vendorPhone}`,
       `Stand: ${text.standCode} - ${text.standZone}`,
-      `Montant paye: ${text.amount}`,
+      "",
+      "Paiement",
+      "Description: Paiement location stand",
       `Periode: ${text.period}`,
+      `Montant: ${text.amount}`,
+      "",
+      "Resume",
+      `Total: ${text.amount}`,
+      "Statut: Paiement enregistre",
+      "----------------------------------------",
+      "Merci pour votre paiement.",
     ];
     fs.writeFileSync(filePath, buildSimpleTextPdf(fallbackLines));
   }
