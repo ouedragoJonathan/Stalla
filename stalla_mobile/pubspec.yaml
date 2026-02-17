@@ -50,7 +50,6 @@ flutter:
   
   assets:
     - assets/images/
-    - assets/icons/
     - assets/logo/
 
 flutter_launcher_icons:
