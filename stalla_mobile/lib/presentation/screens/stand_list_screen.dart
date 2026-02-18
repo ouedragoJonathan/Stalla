@@ -125,6 +125,16 @@ class _ZoneCard extends StatelessWidget {
         (m) => '${m[1]} ',
       );
 
+  String _getZoneLabel(String zone) {
+    const labels = {
+      'A': 'Zone A - Entrée',
+      'B': 'Zone B - Produits frais',
+      'C': 'Zone C - Textile',
+      'D': 'Zone D - Divers',
+    };
+    return labels[zone] ?? 'Zone $zone';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -174,7 +184,7 @@ class _ZoneCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Zone ${zone.zone}',
+                          _getZoneLabel(zone.zone),
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w600,
                             fontSize: 16,

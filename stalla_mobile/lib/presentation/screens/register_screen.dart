@@ -31,6 +31,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isLoadingZones = true;
 
   // Stand info
+  static const Map<String, String> _zoneLabels = {
+    'A': 'Zone A - Entrée',
+    'B': 'Zone B - Produits frais',
+    'C': 'Zone C - Textile',
+    'D': 'Zone D - Divers',
+  };
+  
   List<StandZoneOverview> _zones = [];
   String? _selectedZone;
   String _selectedCategory = 'STANDARD';
@@ -229,10 +236,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         DropdownButtonFormField<String>(
           value: _selectedZone,
           decoration: const InputDecoration(hintText: 'Choisir une zone'),
-          items: _zones
-              .map((z) => DropdownMenuItem<String>(
-                    value: z.zone,
-                    child: Text('Zone ${z.zone}'),
+          items: _zoneLabels.entries
+              .map((e) => DropdownMenuItem<String>(
+                    value: e.key,
+                    child: Text(e.value),
                   ))
               .toList(),
           onChanged: (v) => setState(() => _selectedZone = v),

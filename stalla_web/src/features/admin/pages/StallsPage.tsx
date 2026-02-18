@@ -2,6 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import type { Stand } from "../../../core/types";
 import { createStall, deleteStall, getStalls } from "../adminService";
 
+const ZONES = ["A", "B", "C", "D"] as const;
+const ZONE_LABELS: Record<string, string> = {
+  A: "Zone A - Entrée",
+  B: "Zone B - Produits frais",
+  C: "Zone C - Textile",
+  D: "Zone D - Divers",
+};
+
 const PRICE_OPTIONS = {
   STANDARD: [10000, 15000, 20000, 25000, 30000],
   PREMIUM: [35000, 40000, 45000, 50000],
@@ -31,7 +39,7 @@ export function StallsPage() {
   const [stalls, setStalls] = useState<Stand[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
-  const [zone, setZone] = useState("");
+  const [zone, setZone] = useState("A");
   const [category, setCategory] = useState<"STANDARD" | "PREMIUM">("STANDARD");
   const [monthlyPrice, setMonthlyPrice] = useState<number>(PRICE_OPTIONS.STANDARD[0]);
   const [saving, setSaving] = useState(false);
@@ -114,13 +122,13 @@ export function StallsPage() {
           <form className="form-stack" onSubmit={handleSubmit}>
             <div className="form-field">
               <label>Zone</label>
-              <input
-                type="text"
-                value={zone}
-                onChange={(e) => setZone(e.target.value)}
-                placeholder="Ex: A, B, C..."
-                required
-              />
+              <select value={zone} onChange={(e) => setZone(e.target.value)} required>
+                {ZONES.map((z) => (
+                  <option key={z} value={z}>
+                    {ZONE_LABELS[z]}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="form-field">
               <label>Catégorie</label>
@@ -184,7 +192,7 @@ export function StallsPage() {
                   return (
                     <tr key={stall.id}>
                       <td>{stall.code}</td>
-                      <td>{stall.zone}</td>
+                      <td>{ZONE_LABELS[stall.zone] || `Zone ${stall.zone}`}</td>
                       <td>
                         <span className={`status-pill ${stall.category === "PREMIUM" ? "occupied" : "available"}`}>
                           {stall.category ?? "STANDARD"}

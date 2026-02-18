@@ -44,40 +44,16 @@ class LandingPage extends StatelessWidget {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Container(
-                        height: 50,
-                        width: 50,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
-                              blurRadius: 10,
-                            )
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Image.asset(
-                              'assets/logo/logo.png',
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                        ),
-                      ),
                       const Spacer(),
                       TextButton(
                         onPressed: () => context.go(AppConstants.loginRoute),
                         style: TextButton.styleFrom(
-                          foregroundColor: Colors.white,
+                          foregroundColor: const Color(0xFFFF6B2C),
                           padding: const EdgeInsets.symmetric(
                               horizontal: 14, vertical: 10),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
-                            side: const BorderSide(color: Colors.white70),
+                            side: const BorderSide(color: Color(0xFFFF6B2C)),
                           ),
                         ),
                         child: Text(
@@ -92,6 +68,33 @@ class LandingPage extends StatelessWidget {
                   ),
 
                   const Spacer(),
+
+                  // Logo (moved and enlarged)
+                  Container(
+                    height: 90,
+                    width: 90,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.15),
+                          blurRadius: 15,
+                        )
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Image.asset(
+                          'assets/logo/logo.png',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
 
                   // Hero text
                   Text(
@@ -114,7 +117,7 @@ class LandingPage extends StatelessWidget {
 
                   const SizedBox(height: 40),
 
-                  // View stands link
+                  // View stands link (orange)
                   GestureDetector(
                     onTap: () => context.push('/stands'),
                     child: Row(
@@ -124,17 +127,18 @@ class LandingPage extends StatelessWidget {
                           'Voir les stands disponibles',
                           style: GoogleFonts.poppins(
                             fontSize: 15,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFFFF6B2C),
+                            fontWeight: FontWeight.w600,
                             decoration: TextDecoration.underline,
-                            decorationColor: Colors.white,
+                            decorationColor: const Color(0xFFFF6B2C),
                           ),
                         ),
                         const SizedBox(width: 6),
-                        const Icon(Icons.arrow_forward, color: Colors.white, size: 18),
+                        const Icon(Icons.arrow_forward, color: Color(0xFFFF6B2C), size: 18),
                       ],
                     ),
                   ),
+
 
                   const SizedBox(height: 32),
                 ],
