@@ -17,6 +17,7 @@ export async function getStalls(): Promise<ApiResponse<Stand[]>> {
 export async function createStall(payload: {
   code: string;
   zone: string;
+  category: string;
   monthly_price: number;
 }): Promise<ApiResponse<Stand>> {
   return apiRequest<Stand>("/admin/stalls", "POST", payload);

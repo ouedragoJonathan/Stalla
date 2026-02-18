@@ -3,6 +3,7 @@ import '../core/constants/app_constants.dart';
 import '../presentation/screens/landing_page.dart';
 import '../presentation/screens/login_screen.dart';
 import '../presentation/screens/register_screen.dart';
+import '../presentation/screens/stand_list_screen.dart';
 import '../presentation/screens/home_screen.dart';
 import '../presentation/screens/stand_screen.dart';
 import '../presentation/screens/debts_screen.dart';
@@ -15,53 +16,68 @@ class AppRouter {
   final AuthRepository _authRepository = AuthRepository();
 
   late final GoRouter router = GoRouter(
-    // 1. On définit la Landing Page comme emplacement de départ
     initialLocation: '/landing',
 
     redirect: (context, state) async {
       final isLoggedIn = await _authRepository.isLoggedIn();
 
-      // On vérifie sur quelle route se trouve l'utilisateur
       final isLandingRoute = state.matchedLocation == '/landing';
       final isLoginRoute = state.matchedLocation == AppConstants.loginRoute;
       final isRegisterRoute =
           state.matchedLocation == AppConstants.registerRoute;
+      final isStandsRoute = state.matchedLocation == '/stands';
 
-      // SI l'utilisateur n'est PAS connecté :
-      // On l'autorise à rester sur Landing ou Login, sinon on le renvoie sur Landing
+      // Public routes: accessible without login
       if (!isLoggedIn) {
-        if (isLandingRoute || isLoginRoute || isRegisterRoute) return null;
+        if (isLandingRoute ||
+            isLoginRoute ||
+            isRegisterRoute ||
+            isStandsRoute) {
+          return null;
+        }
         return '/landing';
       }
 
-      // SI l'utilisateur EST connecté :
-      // S'il essaie d'aller sur Landing ou Login, on le redirige vers la Home
+      // If logged in, redirect away from public auth screens
       if (isLoggedIn && (isLandingRoute || isLoginRoute || isRegisterRoute)) {
         return AppConstants.homeRoute;
       }
 
-      // Dans tous les autres cas, on ne redirige pas
       return null;
     },
 
     routes: [
-      // Route pour la Landing Page
+      // Landing Page
       GoRoute(
         path: '/landing',
         builder: (context, state) => const LandingPage(),
       ),
 
-      // Route pour le Login
+      // Public stand listing (no auth required)
+      GoRoute(
+        path: '/stands',
+        builder: (context, state) => const StandListScreen(),
+      ),
+
+      // Login
       GoRoute(
         path: AppConstants.loginRoute,
         builder: (context, state) => const LoginScreen(),
       ),
+
+      // Register / Application form (can receive zone + category as extras)
       GoRoute(
         path: AppConstants.registerRoute,
-        builder: (context, state) => const RegisterScreen(),
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return RegisterScreen(
+            initialZone: extra?['zone'] as String?,
+            initialCategory: extra?['category'] as String?,
+          );
+        },
       ),
 
-      // Routes protégées (nécessitent d'être connecté)
+      // Protected routes
       ShellRoute(
         builder: (context, state, child) {
           return MainLayout(

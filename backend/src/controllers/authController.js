@@ -270,7 +270,16 @@ export async function resetAdminPassword(req, res) {
 
 export async function submitVendorApplication(req, res) {
   try {
-    const { full_name, phone, email, desired_zone, budget_min, budget_max } = req.body;
+    const {
+      full_name,
+      phone,
+      email,
+      business_type,
+      desired_zone,
+      desired_category,
+      budget_min,
+      budget_max,
+    } = req.body;
 
     if (!full_name || !phone || !desired_zone || budget_min == null || budget_max == null) {
       return sendResponse(res, {
@@ -314,11 +323,19 @@ export async function submitVendorApplication(req, res) {
       });
     }
 
+    const validCategories = ["STANDARD", "PREMIUM"];
+    const category =
+      desired_category && validCategories.includes(desired_category.toUpperCase())
+        ? desired_category.toUpperCase()
+        : null;
+
     const application = await VendorApplication.create({
       fullName: full_name.trim(),
       phone: phone.trim(),
       email: email?.trim() || null,
+      businessType: business_type?.trim() || null,
       desiredZone: desired_zone.trim(),
+      desiredCategory: category,
       budgetMin: min,
       budgetMax: max,
       status: "PENDING",

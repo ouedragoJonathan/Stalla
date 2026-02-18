@@ -11,7 +11,7 @@ class LandingPage extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          // 1. Image de fond avec filtre sombre
+          // Background image with dark overlay
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
@@ -26,21 +26,21 @@ class LandingPage extends StatelessWidget {
                   end: Alignment.bottomCenter,
                   colors: [
                     Colors.black.withValues(alpha: 0.3),
-                    Colors.black.withValues(alpha: 0.8),
+                    Colors.black.withValues(alpha: 0.85),
                   ],
                 ),
               ),
             ),
           ),
 
-          // 2. Contenu de la page
+          // Content
           SafeArea(
-            child: SingleChildScrollView(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 30.0, vertical: 32.0),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 32.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Logo + Login button row
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -70,7 +70,7 @@ class LandingPage extends StatelessWidget {
                       ),
                       const Spacer(),
                       TextButton(
-                        onPressed: () => context.go('/login'),
+                        onPressed: () => context.go(AppConstants.loginRoute),
                         style: TextButton.styleFrom(
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(
@@ -90,8 +90,10 @@ class LandingPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 70),
 
+                  const Spacer(),
+
+                  // Hero text
                   Text(
                     'Trouvez votre zone\nidéale au marché.',
                     style: GoogleFonts.poppins(
@@ -101,10 +103,7 @@ class LandingPage extends StatelessWidget {
                       height: 1.2,
                     ),
                   ),
-
-                  const SizedBox(height: 20),
-
-                  // Sous-titre
+                  const SizedBox(height: 16),
                   Text(
                     "L'application tout-en-un pour les commerçants du marché.",
                     style: GoogleFonts.poppins(
@@ -115,147 +114,30 @@ class LandingPage extends StatelessWidget {
 
                   const SizedBox(height: 40),
 
-                  SizedBox(
-                    width: double.infinity,
-                    height: 60,
-                    child: ElevatedButton(
-                      onPressed: () => context.go(AppConstants.registerRoute),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF6B2C),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
+                  // View stands link
+                  GestureDetector(
+                    onTap: () => context.push('/stands'),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Voir les stands disponibles',
+                          style: GoogleFonts.poppins(
+                            fontSize: 15,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                            decoration: TextDecoration.underline,
+                            decorationColor: Colors.white,
+                          ),
                         ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        'Demander un stand',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                        const SizedBox(width: 6),
+                        const Icon(Icons.arrow_forward, color: Colors.white, size: 18),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 24),
 
-                  Text(
-                    'Zones disponibles',
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      _ZoneChip(label: 'Zone A - Entrée'),
-                      _ZoneChip(label: 'Zone B - Produits frais'),
-                      _ZoneChip(label: 'Zone C - Textile'),
-                      _ZoneChip(label: 'Zone D - Divers'),
-                    ],
-                  ),
-                  const SizedBox(height: 18),
-                  Text(
-                    'Exemples de stands et prix',
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const _ExampleStandCard(
-                      code: 'A12', zone: 'Zone A', price: '55 000 FCFA / mois'),
-                  const SizedBox(height: 8),
-                  const _ExampleStandCard(
-                      code: 'B05', zone: 'Zone B', price: '45 000 FCFA / mois'),
-                  const SizedBox(height: 8),
-                  const _ExampleStandCard(
-                      code: 'C21', zone: 'Zone C', price: '35 000 FCFA / mois'),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
                 ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ZoneChip extends StatelessWidget {
-  final String label;
-  const _ZoneChip({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white24),
-      ),
-      child: Text(
-        label,
-        style: GoogleFonts.poppins(
-          color: Colors.white,
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-}
-
-class _ExampleStandCard extends StatelessWidget {
-  final String code;
-  final String zone;
-  final String price;
-
-  const _ExampleStandCard({
-    required this.code,
-    required this.zone,
-    required this.price,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white24),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              code,
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              '$zone • $price',
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontSize: 13,
               ),
             ),
           ),

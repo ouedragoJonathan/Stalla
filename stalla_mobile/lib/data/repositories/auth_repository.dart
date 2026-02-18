@@ -51,6 +51,7 @@ class AuthRepository {
     required String phone,
     String? email,
     required String desiredZone,
+    String? desiredCategory,
     required double budgetMin,
     required double budgetMax,
   }) async {
@@ -63,6 +64,7 @@ class AuthRepository {
           'phone': phone,
           'email': email?.trim().isEmpty == true ? null : email,
           'desired_zone': desiredZone,
+          'desired_category': desiredCategory,
           'budget_min': budgetMin,
           'budget_max': budgetMax,
         },

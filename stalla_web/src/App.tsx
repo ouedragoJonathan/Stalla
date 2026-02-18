@@ -12,6 +12,7 @@ import { VendorsPage } from "./features/admin/pages/VendorsPage";
 import { AllocationsPage } from "./features/admin/pages/AllocationsPage";
 import { PaymentsPage } from "./features/admin/pages/PaymentsPage";
 import { DebtorsPage } from "./features/admin/pages/DebtorsPage";
+import { ApplicationsPage } from "./features/admin/pages/ApplicationsPage";
 import { SupportSettingsPage } from "./features/admin/pages/SupportSettingsPage";
 
 export function App() {
@@ -29,6 +30,7 @@ export function App() {
             <Route index element={<DashboardPage />} />
             <Route path="stalls" element={<StallsPage />} />
             <Route path="vendors" element={<VendorsPage />} />
+            <Route path="applications" element={<ApplicationsPage />} />
             <Route path="allocations" element={<AllocationsPage />} />
             <Route path="payments" element={<PaymentsPage />} />
             <Route path="debtors" element={<DebtorsPage />} />

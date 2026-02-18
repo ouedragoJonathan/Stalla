@@ -33,6 +33,7 @@ export interface Stand {
   id: number;
   code: string;
   zone: string;
+  category?: "STANDARD" | "PREMIUM";
   monthly_price: number;
   status: "AVAILABLE" | "OCCUPIED";
   active_allocation?: {
@@ -61,6 +62,8 @@ export interface VendorApplication {
   phone: string;
   email: string | null;
   desired_zone: string;
+  desired_category: "STANDARD" | "PREMIUM" | null;
+  business_type: string | null;
   budget_min: number;
   budget_max: number;
   status: "PENDING" | "APPROVED" | "REJECTED";

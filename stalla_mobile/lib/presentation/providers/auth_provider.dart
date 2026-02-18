@@ -79,6 +79,7 @@ class AuthProvider extends ChangeNotifier {
     required String phone,
     String? email,
     required String desiredZone,
+    String? desiredCategory,
     required double budgetMin,
     required double budgetMax,
   }) async {
@@ -92,6 +93,7 @@ class AuthProvider extends ChangeNotifier {
       phone: phone,
       email: email,
       desiredZone: desiredZone,
+      desiredCategory: desiredCategory,
       budgetMin: budgetMin,
       budgetMax: budgetMax,
     );

@@ -8,6 +8,7 @@ import { swaggerSpec } from "./swagger.js";
 import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import vendorRoutes from "./routes/vendorRoutes.js";
+import publicRoutes from "./routes/publicRoutes.js";
 import { sendResponse } from "./utils/response.js";
 import { runDebtJob, startDebtCronJob } from "./cron/debtJob.js";
 import { authenticate, authorize } from "./middlewares/auth.js";
@@ -24,6 +25,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/vendor", vendorRoutes);
 app.use("/api/v1/vendor", vendorRoutes);
+app.use("/api/public", publicRoutes);
 
 app.post("/api/admin/run-debt-job", authenticate, authorize("ADMIN"), async (req, res) => {
   try {

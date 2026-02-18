@@ -2,19 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import type { Stand } from "../../../core/types";
 import { createStall, deleteStall, getStalls } from "../adminService";
 
-const ZONES = ["A", "B", "C", "D"] as const;
-const ZONE_LABELS: Record<string, string> = {
-  A: "Zone A - Entrée",
-  B: "Zone B - Produits frais",
-  C: "Zone C - Textile",
-  D: "Zone D - Divers",
+const PRICE_OPTIONS = {
+  STANDARD: [10000, 15000, 20000, 25000, 30000],
+  PREMIUM: [35000, 40000, 45000, 50000],
 };
-
-function formatZone(zone: string): string {
-  const key = zone.trim().toUpperCase().replace(/^ZONE\s*/i, "").charAt(0);
-  if (ZONE_LABELS[key]) return ZONE_LABELS[key];
-  return zone;
-}
 
 function getStatusUi(status: Stand["status"]) {
   if (status === "OCCUPIED") {
@@ -23,30 +14,33 @@ function getStatusUi(status: Stand["status"]) {
   return { label: "Disponible", className: "status-pill available" };
 }
 
-function getNextStandCode(zone: string, stalls: Stand[]): string {
-  const normalizedZone = zone.trim().toUpperCase();
+function getNextStandCode(zone: string, category: string, stalls: Stand[]): string {
+  const prefix = `${zone.trim().toUpperCase()}-${category === "PREMIUM" ? "P" : "S"}`;
   const maxForZone = stalls.reduce((max, stall) => {
     const code = stall.code.trim().toUpperCase();
-    const match = code.match(new RegExp(`^${normalizedZone}[- ]?(\\d+)$`));
+    const match = code.match(new RegExp(`^${prefix}(\\d+)$`));
     if (!match) return max;
     const n = Number(match[1]);
     if (!Number.isFinite(n)) return max;
     return Math.max(max, n);
   }, 0);
-
-  return `${normalizedZone}-${String(maxForZone + 1).padStart(2, "0")}`;
+  return `${prefix}${String(maxForZone + 1).padStart(2, "0")}`;
 }
 
 export function StallsPage() {
   const [stalls, setStalls] = useState<Stand[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
-  const [zone, setZone] = useState<(typeof ZONES)[number]>("A");
-  const [monthlyPrice, setMonthlyPrice] = useState("");
+  const [zone, setZone] = useState("");
+  const [category, setCategory] = useState<"STANDARD" | "PREMIUM">("STANDARD");
+  const [monthlyPrice, setMonthlyPrice] = useState<number>(PRICE_OPTIONS.STANDARD[0]);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  const code = useMemo(() => getNextStandCode(zone, stalls), [zone, stalls]);
+  const code = useMemo(() => {
+    if (!zone.trim()) return "";
+    return getNextStandCode(zone, category, stalls);
+  }, [zone, category, stalls]);
 
   async function load() {
     setLoading(true);
@@ -63,10 +57,15 @@ export function StallsPage() {
     load();
   }, []);
 
+  // Reset price when category changes
+  useEffect(() => {
+    setMonthlyPrice(PRICE_OPTIONS[category][0]);
+  }, [category]);
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!code.trim() || !zone.trim() || !monthlyPrice.trim()) {
-      setMessage("Tous les champs sont obligatoires.");
+    if (!zone.trim()) {
+      setMessage("Veuillez renseigner la zone.");
       return;
     }
     setSaving(true);
@@ -74,11 +73,11 @@ export function StallsPage() {
     const response = await createStall({
       code: code.trim(),
       zone: zone.trim(),
-      monthly_price: Number(monthlyPrice),
+      category,
+      monthly_price: monthlyPrice,
     });
     setSaving(false);
     if (response.success) {
-      setMonthlyPrice("");
       await load();
       setMessage("Stand créé avec succès.");
       return;
@@ -109,32 +108,48 @@ export function StallsPage() {
         <article className="panel-card form-panel">
           <div className="panel-title">
             <h3>Nouveau Stand</h3>
-            <p>Créer rapidement un emplacement.</p>
+            <p>Créer un emplacement avec sa catégorie et son loyer.</p>
           </div>
 
           <form className="form-stack" onSubmit={handleSubmit}>
             <div className="form-field">
-              <label>Code</label>
-              <input value={code} readOnly />
+              <label>Zone</label>
+              <input
+                type="text"
+                value={zone}
+                onChange={(e) => setZone(e.target.value)}
+                placeholder="Ex: A, B, C..."
+                required
+              />
             </div>
             <div className="form-field">
-              <label>Zone</label>
-              <select value={zone} onChange={(event) => setZone(event.target.value as (typeof ZONES)[number])} required>
-                {ZONES.map((zoneValue) => (
-                  <option key={zoneValue} value={zoneValue}>
-                    {ZONE_LABELS[zoneValue]}
+              <label>Catégorie</label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value as "STANDARD" | "PREMIUM")}
+                required
+              >
+                <option value="STANDARD">Standard (10 000 – 30 000 CFA)</option>
+                <option value="PREMIUM">Premium (35 000 – 50 000 CFA)</option>
+              </select>
+            </div>
+            <div className="form-field">
+              <label>Loyer mensuel (CFA)</label>
+              <select
+                value={monthlyPrice}
+                onChange={(e) => setMonthlyPrice(Number(e.target.value))}
+                required
+              >
+                {PRICE_OPTIONS[category].map((price) => (
+                  <option key={price} value={price}>
+                    {price.toLocaleString()} CFA
                   </option>
                 ))}
               </select>
             </div>
             <div className="form-field">
-              <label>Loyer mensuel</label>
-              <input
-                type="number"
-                value={monthlyPrice}
-                onChange={(event) => setMonthlyPrice(event.target.value)}
-                required
-              />
+              <label>Code généré</label>
+              <input value={code} readOnly />
             </div>
             <button className="btn-primary accent" type="submit" disabled={saving}>
               {saving ? "Création..." : "Ajouter le stand"}
@@ -156,6 +171,7 @@ export function StallsPage() {
                 <tr>
                   <th align="left">Code</th>
                   <th align="left">Zone</th>
+                  <th align="left">Catégorie</th>
                   <th align="left">Loyer</th>
                   <th align="left">Statut</th>
                   <th align="left">Vendeur actif</th>
@@ -166,36 +182,41 @@ export function StallsPage() {
                 {stalls.map((stall) => {
                   const statusUi = getStatusUi(stall.status);
                   return (
-                  <tr key={stall.id}>
-                    <td>{stall.code}</td>
-                    <td>{formatZone(stall.zone)}</td>
-                    <td>{stall.monthly_price}</td>
-                    <td>
-                      <span className={statusUi.className}>{statusUi.label}</span>
-                    </td>
-                    <td>{stall.active_allocation?.vendor_name ?? "-"}</td>
-                    <td align="center">
-                      {stall.status !== "OCCUPIED" ? (
-                        <button
-                          type="button"
-                          className="icon-btn danger"
-                          onClick={() => handleDeleteStand(stall)}
-                          disabled={deletingId === stall.id}
-                          title="Supprimer"
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M3 6h18" />
-                            <path d="M8 6V4h8v2" />
-                            <path d="M19 6l-1 14H6L5 6" />
-                            <path d="M10 11v6M14 11v6" />
-                          </svg>
-                        </button>
-                      ) : (
-                        "-"
-                      )}
-                    </td>
-                  </tr>
-                );
+                    <tr key={stall.id}>
+                      <td>{stall.code}</td>
+                      <td>{stall.zone}</td>
+                      <td>
+                        <span className={`status-pill ${stall.category === "PREMIUM" ? "occupied" : "available"}`}>
+                          {stall.category ?? "STANDARD"}
+                        </span>
+                      </td>
+                      <td>{Number(stall.monthly_price).toLocaleString()} CFA</td>
+                      <td>
+                        <span className={statusUi.className}>{statusUi.label}</span>
+                      </td>
+                      <td>{stall.active_allocation?.vendor_name ?? "-"}</td>
+                      <td align="center">
+                        {stall.status !== "OCCUPIED" ? (
+                          <button
+                            type="button"
+                            className="icon-btn danger"
+                            onClick={() => handleDeleteStand(stall)}
+                            disabled={deletingId === stall.id}
+                            title="Supprimer"
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M3 6h18" />
+                              <path d="M8 6V4h8v2" />
+                              <path d="M19 6l-1 14H6L5 6" />
+                              <path d="M10 11v6M14 11v6" />
+                            </svg>
+                          </button>
+                        ) : (
+                          "-"
+                        )}
+                      </td>
+                    </tr>
+                  );
                 })}
               </tbody>
             </table>

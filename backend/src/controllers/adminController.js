@@ -99,12 +99,12 @@ export async function listAdminStalls(req, res) {
         status: stand.status,
         active_allocation: active
           ? {
-              id: active.id,
-              vendor_id: active.vendorId,
-              vendor_name: active.vendor?.fullName || null,
-              start_date: active.startDate,
-              end_date: active.endDate,
-            }
+            id: active.id,
+            vendor_id: active.vendorId,
+            vendor_name: active.vendor?.fullName || null,
+            start_date: active.startDate,
+            end_date: active.endDate,
+          }
           : null,
       };
     });
@@ -122,7 +122,7 @@ export async function listAdminStalls(req, res) {
 
 export async function createAdminStand(req, res) {
   try {
-    const { code, zone, monthly_price } = req.body;
+    const { code, zone, category, monthly_price } = req.body;
     if (!code || !zone || monthly_price == null) {
       return sendResponse(res, {
         status: 400,
@@ -131,6 +131,11 @@ export async function createAdminStand(req, res) {
         errors: { fields: "code, zone, monthly_price requis" },
       });
     }
+
+    const validCategories = ["STANDARD", "PREMIUM"];
+    const standCategory = category && validCategories.includes(category.toUpperCase())
+      ? category.toUpperCase()
+      : "STANDARD";
 
     const existing = await Stand.findOne({ where: { code } });
     if (existing) {
@@ -145,6 +150,7 @@ export async function createAdminStand(req, res) {
     const stand = await Stand.create({
       code,
       zone,
+      category: standCategory,
       monthlyPrice: Number(monthly_price),
       status: "AVAILABLE",
     });
@@ -156,6 +162,7 @@ export async function createAdminStand(req, res) {
         id: stand.id,
         code: stand.code,
         zone: stand.zone,
+        category: stand.category,
         monthly_price: Number(stand.monthlyPrice),
         status: stand.status,
       },
@@ -169,6 +176,7 @@ export async function createAdminStand(req, res) {
     });
   }
 }
+
 
 export async function deleteAdminStand(req, res) {
   try {
@@ -660,7 +668,9 @@ export async function listVendorApplications(req, res) {
       full_name: item.fullName,
       phone: item.phone,
       email: item.email,
+      business_type: item.businessType || null,
       desired_zone: item.desiredZone,
+      desired_category: item.desiredCategory || null,
       budget_min: Number(item.budgetMin),
       budget_max: Number(item.budgetMax),
       status: item.status,

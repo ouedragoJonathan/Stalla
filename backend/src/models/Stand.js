@@ -7,6 +7,11 @@ export function initStand(sequelize) {
       id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
       code: { type: DataTypes.STRING(50), allowNull: false, unique: true },
       zone: { type: DataTypes.STRING(100), allowNull: false },
+      category: {
+        type: DataTypes.ENUM("STANDARD", "PREMIUM"),
+        allowNull: false,
+        defaultValue: "STANDARD",
+      },
       monthlyPrice: { type: DataTypes.DECIMAL(12, 2), allowNull: false, field: "monthly_price" },
       status: { type: DataTypes.STRING(20), allowNull: false, defaultValue: "AVAILABLE" },
     },
@@ -15,3 +20,4 @@ export function initStand(sequelize) {
 
   return Stand;
 }
+
