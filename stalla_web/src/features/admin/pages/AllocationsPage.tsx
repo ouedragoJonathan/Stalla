@@ -132,7 +132,11 @@ export function AllocationsPage() {
               {stalls.map((stall) => (
                 <tr key={stall.id}>
                   <td>{stall.code}</td>
-                  <td>{stall.status}</td>
+                  <td>
+                    <span className={`status-pill ${stall.status === "OCCUPIED" ? "occupied" : "available"}`}>
+                      {stall.status === "OCCUPIED" ? "Occupé" : "Disponible"}
+                    </span>
+                  </td>
                   <td>{stall.active_allocation?.vendor_name ?? "-"}</td>
                   <td>{stall.active_allocation?.start_date ?? "-"}</td>
                 </tr>

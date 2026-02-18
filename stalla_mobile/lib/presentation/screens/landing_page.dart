@@ -48,13 +48,14 @@ class LandingPage extends StatelessWidget {
                       TextButton(
                         onPressed: () => context.go(AppConstants.loginRoute),
                         style: TextButton.styleFrom(
-                          foregroundColor: const Color(0xFFFF6B2C),
+                          backgroundColor: const Color(0xFFFF6B2C),
+                          foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 10),
+                              horizontal: 20, vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
-                            side: const BorderSide(color: Color(0xFFFF6B2C)),
                           ),
+                          elevation: 2,
                         ),
                         child: Text(
                           'Se connecter',

@@ -95,6 +95,7 @@ export async function listAdminStalls(req, res) {
         id: stand.id,
         code: stand.code,
         zone: stand.zone,
+        category: stand.category,
         monthly_price: Number(stand.monthlyPrice),
         status: stand.status,
         active_allocation: active
