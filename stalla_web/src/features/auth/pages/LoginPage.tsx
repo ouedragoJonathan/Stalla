@@ -127,7 +127,7 @@ export function LoginPage() {
         <div className="auth-footer">
           Pas encore d'accès ?
           <a href="#" onClick={(e) => { e.preventDefault(); navigate("/register"); }}>
-            Créer un compte admin
+            Créer un compte
           </a>
         </div>
       </div>
