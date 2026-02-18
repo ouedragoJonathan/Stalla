@@ -90,9 +90,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final z = _selectedZoneData;
     if (z == null) return '';
     if (_selectedCategory == 'PREMIUM') {
-      return '${_fmt(z.premiumPriceMin)} – ${_fmt(z.premiumPriceMax)} CFA/mois';
+      return '${_fmt(z.premiumPriceMax)} CFA';
     }
-    return '${_fmt(z.standardPriceMin)} – ${_fmt(z.standardPriceMax)} CFA/mois';
+    return '${_fmt(z.standardPriceMax)} CFA';
   }
 
   String _fmt(int value) => value.toString().replaceAllMapped(
@@ -242,7 +242,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     child: Text(e.value),
                   ))
               .toList(),
-          onChanged: (v) => setState(() => _selectedZone = v),
+          onChanged: widget.initialZone != null ? null : (v) => setState(() => _selectedZone = v),
           validator: (v) => v == null ? 'Requis' : null,
         ),
         const SizedBox(height: 16),
@@ -253,14 +253,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
           items: const [
             DropdownMenuItem(
               value: 'STANDARD',
-              child: Text('Standard (10 000 – 30 000 CFA/mois)'),
+              child: Text('Standard'),
             ),
             DropdownMenuItem(
               value: 'PREMIUM',
-              child: Text('Premium (35 000 – 50 000 CFA/mois)'),
+              child: Text('Premium'),
             ),
           ],
-          onChanged: (v) => setState(() => _selectedCategory = v ?? 'STANDARD'),
+          onChanged: widget.initialCategory != null ? null : (v) => setState(() => _selectedCategory = v ?? 'STANDARD'),
         ),
         if (_selectedZone != null && _selectedZoneData != null) ...[
           const SizedBox(height: 16),
@@ -279,7 +279,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Fourchette de prix : ${_getPriceRange()}',
+                    'Prix du stand : ${_getPriceRange()}',
                     style: const TextStyle(
                       color: AppColors.orangePantone,
                       fontSize: 13,

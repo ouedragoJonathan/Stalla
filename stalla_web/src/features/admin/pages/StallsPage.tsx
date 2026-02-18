@@ -137,8 +137,8 @@ export function StallsPage() {
                 onChange={(e) => setCategory(e.target.value as "STANDARD" | "PREMIUM")}
                 required
               >
-                <option value="STANDARD">Standard (10 000 – 30 000 CFA)</option>
-                <option value="PREMIUM">Premium (35 000 – 50 000 CFA)</option>
+                <option value="STANDARD">Standard</option>
+                <option value="PREMIUM">Premium</option>
               </select>
             </div>
             <div className="form-field">

@@ -118,7 +118,7 @@ class _ZoneCard extends StatelessWidget {
   });
 
   String _formatPrice(int min, int max) =>
-      '${_fmt(min)} – ${_fmt(max)} CFA/mois';
+      '${_fmt(max)} CFA';
 
   String _fmt(int value) => value.toString().replaceAllMapped(
         RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),

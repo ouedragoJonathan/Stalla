@@ -723,7 +723,7 @@ export async function approveVendorApplication(req, res) {
         email: application.email,
         full_name: application.fullName,
         phone: application.phone,
-        business_type: "Non renseignée",
+        business_type: application.businessType || "Non renseignée",
       },
       tx
     );

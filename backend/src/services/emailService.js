@@ -88,7 +88,7 @@ export async function sendVendorApplicationRejectedEmail({ to, fullName }) {
       <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #1f2937;">
         <h2 style="margin-bottom: 8px;">Demande non retenue</h2>
         <p>Bonjour ${fullName || ""},</p>
-        <p>Votre demande d'inscription vendeur n'a pas été retenue pour le moment.</p>
+        <p>Votre demande d'inscription vendeur n'a pas été retenue.</p>
         <p>Vous pouvez soumettre une nouvelle demande avec d'autres préférences de zone/prix.</p>
         <p>L'équipe STALLA reste disponible pour vous accompagner.</p>
       </div>

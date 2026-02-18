@@ -104,19 +104,19 @@ export function ApplicationsPage() {
                                         </span>
                                     </td>
                                     <td>
-                                        {app.budget_min.toLocaleString()} – {app.budget_max.toLocaleString()} CFA
+                                        {app.budget_max.toLocaleString()} CFA
                                     </td>
                                     <td align="center">
-                                        <div className="row-actions">
+                                        <div className="row-actions" style={{ display: 'flex', gap: '8px' }}>
                                             <button
-                                                className="btn-primary small"
+                                                className="btn-approve-pastel"
                                                 onClick={() => handleApprove(app)}
                                                 disabled={processingId === app.id}
                                             >
                                                 Valider
                                             </button>
                                             <button
-                                                className="btn-text danger small"
+                                                className="btn-reject-orange"
                                                 onClick={() => handleReject(app)}
                                                 disabled={processingId === app.id}
                                             >
